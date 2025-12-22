@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lottie Loader</title>
+    <!-- Using Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Using Inter font */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom styles for the file input button */
+        .file-input-button {
+            cursor: pointer;
+            padding: 0.75rem 1.5rem;
+            background-color: #4f46e5;
+            color: white;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        .file-input-button:hover {
+            background-color: #4338ca;
+        }
+        #lottieFile {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col items-center justify-center min-h-screen p-4 transition-colors duration-300">
+
+    <!-- This is the initial UI for selecting the file -->
+    <div id="loader-ui" class="w-full max-w-lg text-center p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl transition-all duration-500">
+        <h1 class="text-3xl font-bold mb-2 text-gray-800 dark:text-white">Lottie Animation Loader</h1>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">Select a Lottie JSON file to view it in the Flutter app.</p>
+
+        <div class="flex flex-col items-center space-y-4">
+            <!-- Styled file input -->
+            <label for="lottieFile" class="file-input-button shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all">
+                Choose a .json file
+            </label>
+            <input type="file" id="lottieFile" accept=".json">
+            <span id="fileName" class="text-sm text-gray-500 dark:text-gray-400">No file chosen</span>
+
+            <!-- Send button, initially disabled -->
+            <button id="sendButton" class="w-full bg-indigo-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:shadow-none transition-all" disabled>
+                Load Animation
+            </button>
+        </div>
+        <p id="errorMessage" class="text-red-500 mt-4 h-5"></p>
+    </div>
+
+    <!-- The Modal/Overlay for the iFrame -->
+    <div id="iframe-overlay" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 sm:p-6 md:p-8">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md h-[80vh] sm:max-w-lg md:max-w-2xl sm:h-[85vh] flex flex-col relative overflow-hidden">
+            <!-- Close Button -->
+            <button id="closeOverlayButton" class="absolute top-3 right-3 z-10 p-2 rounded-full bg-gray-200/50 dark:bg-gray-900/50 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <!-- Iframe container -->
+            <div id="iframe-container" class="w-full h-full flex-grow">
+                <!-- Iframe will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Get references to the DOM elements
+        const lottieFileInput = document.getElementById('lottieFile');
+        const sendButton = document.getElementById('sendButton');
+        const fileNameSpan = document.getElementById('fileName');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Overlay and Iframe elements
+        const iframeOverlay = document.getElementById('iframe-overlay');
+        const iframeContainer = document.getElementById('iframe-container');
+        const closeOverlayButton = document.getElementById('closeOverlayButton');
+
+
+        let lottieJsonContent = null;
+
+        // --- Event Listener for File Input ---
+        lottieFileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) {
+                fileNameSpan.textContent = 'No file chosen';
+                sendButton.disabled = true;
+                lottieJsonContent = null;
+                return;
+            }
+
+            if (file.type !== 'application/json') {
+                errorMessage.textContent = 'Error: Please select a valid .json file.';
+                fileNameSpan.textContent = file.name;
+                sendButton.disabled = true;
+                lottieJsonContent = null;
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                lottieJsonContent = e.target.result;
+                fileNameSpan.textContent = file.name;
+                sendButton.disabled = false;
+                errorMessage.textContent = '';
+            };
+            reader.onerror = () => {
+                errorMessage.textContent = 'Error reading file.';
+                sendButton.disabled = true;
+                lottieJsonContent = null;
+            };
+            reader.readAsText(file);
+        });
+
+        // --- Event Listener for the Send Button ---
+        sendButton.addEventListener('click', () => {
+            if (!lottieJsonContent) {
+                errorMessage.textContent = 'No Lottie file content to send.';
+                return;
+            }
+
+            // Show the overlay
+            iframeOverlay.classList.remove('hidden');
+            iframeOverlay.classList.add('flex');
+
+            // Clear any previous iframe to ensure a fresh state
+            iframeContainer.innerHTML = '';
+
+            const iframe = document.createElement('iframe');
+
+            iframe.onload = () => {
+                setTimeout(() => {
+                    if (iframe.contentWindow) {
+                        iframe.contentWindow.postMessage(lottieJsonContent, '*');
+                    } else {
+                        console.error("Could not get iframe content window.");
+                        errorMessage.textContent = 'Could not communicate with the application.';
+                        // Hide overlay if something goes wrong
+                        iframeOverlay.classList.add('hidden');
+                        iframeOverlay.classList.remove('flex');
+                    }
+                }, 500); // 500ms delay
+            };
+
+            // Set iframe attributes
+            iframe.src = 'index.html'; 
+            iframe.className = 'w-full h-full';
+            iframe.style.border = 'none';
+            iframe.title = 'Flutter Lottie Viewer';
+
+            // Append the configured iframe to its container within the overlay
+            iframeContainer.appendChild(iframe);
+        });
+
+        // --- Event Listener for the Close Button ---
+        closeOverlayButton.addEventListener('click', () => {
+            // Hide the overlay
+            iframeOverlay.classList.add('hidden');
+            iframeOverlay.classList.remove('flex');
+            // Important: Clear the iframe to stop the Flutter app and free up resources
+            iframeContainer.innerHTML = '';
+        });
+
+    </script>
+</body>
+</html>

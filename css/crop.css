@@ -1,0 +1,260 @@
+ /* Basic Reset & Body Setup */
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden; /* Prevent body scrollbars */
+        font-family: 'Inter', sans-serif;
+        background-color: #f0f2f5; /* Slightly different background */
+        color: #333;
+    }
+    body {
+      display: flex;
+      flex-direction: column; /* Stack controls on top of workspace */
+    }
+
+    /* Top Controls Area */
+    #top-controls {
+        background-color: #ffffff;
+      padding: 20px 16px 20px 24px;
+        border-bottom: 1px solid #d9d9d9;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: space-between; /* Center controls horizontally */
+        align-items: center;
+        width: 100%;
+        box-sizing: border-box;
+        z-index: 100; /* Keep controls on top */
+    }
+
+    /* Workspace Area (takes remaining space) */
+    #workspace {
+        flex-grow: 1; /* Allow workspace to fill available vertical space */
+        width: 100%;
+        position: relative; /* Needed for absolute positioning of pan-zoom-container */
+        overflow: hidden; /* Crucial: hides parts of the panned container */
+        cursor: grab; /* Indicate pannable area */
+        background-color: #e9ecef; /* Background for the pannable area */
+    }
+    #workspace:active {
+        cursor: grabbing;
+    }
+
+    /* Container moved by panning/zooming */
+    #pan-zoom-container {
+        position: absolute;
+        top: 0; /* Initial position */
+        left: 0;
+        width: auto; /* Size determined by content */
+        height: auto;
+        /* transition: transform 0.1s linear; */ /* Optional smooth pan */
+    }
+
+
+    /* Wrapper containing the Lottie and crop box (inside pan-zoom) */
+    #previewWrapper {
+        position: relative; /* Position children relative to this */
+        display: none; /* Hidden initially */
+        border: 1px dashed #adb5bd;
+        box-sizing: border-box;
+        background-color: #f8f9fa; /* Slightly different background */
+        background-image:
+     repeating-conic-gradient(
+       #ddd 0deg 90deg,
+       #f8f9fa 90deg 180deg
+     );
+
+        background-size: 20px 20px;
+
+
+
+        /* width, height, padding dynamically set by JS */
+        /* Scaling applied here */
+        transform-origin: top left; /* Scale from top-left (Coordinates are relative to this)*/
+        transition: transform 0.3s ease; /* Smooth scale transition */
+    }
+    /* Container for the actual Lottie animation */
+    #lottieContainer {
+        position: absolute;
+        background: #f8f9fa;
+        /* width, height, top, left dynamically set by JS relative to previewWrapper */
+    }
+    /* The draggable and resizable crop/expand box */
+    #cropBox {
+      position: absolute;
+      border: 2px dashed #007bff;
+      background: rgba(0, 123, 255, 0.1);
+      touch-action: none; /* Prevent browser default touch actions */
+      box-sizing: border-box;
+      cursor: move; /* Use 'move' cursor for the crop box */
+      /* width, height, top, left dynamically set by JS */
+    }
+
+    /* --- Buttons and Controls Styling --- */
+    button, input[type="file"]::file-selector-button {
+        padding: 8px 15px;
+        border: none;
+        border-radius: 5px;
+
+        color: white;
+        cursor: pointer;
+        font-size: 0.9rem; /* Slightly smaller font */
+        transition: background-color 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    button:hover, input[type="file"]::file-selector-button:hover {
+
+        box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+    button:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+    input[type="file"] {
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 5px;
+        font-size: 0.9rem;
+    }
+    a#downloadLink {
+        display: inline-block; /* Correct display type */
+        padding: 8px 15px;
+        background-color: #28a745;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: background-color 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        font-size: 0.9rem;
+    }
+     a#downloadLink:hover {
+        background-color: #218838;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+     }
+
+    /* Buttons inside preview */
+    .preview-buttons {
+        z-index: 20; /* Above crop box */
+        display: flex;
+        gap: 10px;
+    }
+    .preview-buttons button {
+        display: flex;
+
+        gap: 0.5rem;
+        height: 30px;
+        padding: 16px 12px;
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid #ccc;
+        border-radius: 999px;
+
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+          color: black;
+    }
+    .preview-buttons button:hover { background: white; }
+    .preview-buttons img { width: 18px; height: 18px; opacity: 0.8; }
+
+    /* Resizing handles on the cropBox */
+    #cropBox .handle {
+      position: absolute;
+      width: 10px; /* Smaller handles */
+      height: 10px;
+      background: #0056b3;
+      border: 1px solid white;
+      border-radius: 50%;
+      box-shadow: 0 0 2px rgba(0,0,0,0.3);
+      z-index: 15; /* Above crop box, below preview buttons */
+    }
+    #cropBox .top-left     { top: -5px; left: -5px; cursor: nwse-resize; }
+    #cropBox .top-right    { top: -5px; right: -5px; cursor: nesw-resize; }
+    #cropBox .bottom-left  { bottom: -5px; left: -5px; cursor: nesw-resize; }
+    #cropBox .bottom-right { bottom: -5px; right: -5px; cursor: nwse-resize; }
+
+    /* Aspect Ratio Overlay */
+    #ratioOverlay { /* Styles remain largely the same */
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000;
+    }
+    .ratio-form { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); text-align: center; }
+    .ratio-form h3 { margin-top: 0; margin-bottom: 20px; color: #333; }
+    .ratio-input-group { display: flex; gap: 10px; margin: 15px 0 20px 0; align-items: center; justify-content: center; }
+    .ratio-input { width: 80px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; text-align: center; font-size: 1rem; }
+    .ratio-input-group span { font-size: 1.2rem; font-weight: bold; color: #555; }
+    .ratio-buttons { display: flex; gap: 10px; justify-content: center; }
+    .ratio-submit, .ratio-cancel { background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: background-color 0.2s ease; }
+    .ratio-cancel { background: #6c757d; }
+    .ratio-submit:hover { background: #0056b3; }
+    .ratio-cancel:hover { background: #5a6268; }
+
+     /* Responsive adjustments */
+     @media (max-width: 768px) {
+        #top-controls {
+            display: flex;
+            justify-content: space-between; /* Better spacing on smaller screens */
+        }
+        button, input[type="file"]::file-selector-button, input[type="file"], a#downloadLink {
+            font-size: 0.85rem; /* Smaller font on mobile */
+            padding: 6px 10px;
+
+        }
+     }
+     @media (max-width: 480px) {
+        #top-controls {
+             flex-direction: column;
+             align-items: stretch; /* Make controls full width */
+        }
+        button, input[type="file"]::file-selector-button, input[type="file"], a#downloadLink {
+            width: 100%;
+            box-sizing: border-box;
+        }
+     }
+
+
+     #applyBtn{border-radius: 999px; padding: 12px 20px; background-color: #007bff;}
+     #applyBtn:hover{  background-color: #0056b3;}
+     #applyCropBtn{
+       display: inline-block;
+    border-radius: 999px;
+    background-color: rgb(42, 148, 132);
+     }
+#applyCropBtn:hover {
+    background-color: #1B7769;
+
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+     #resetZoomBtn {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: none;
+  border-radius: 9999px;
+  padding: 6px 14px;
+  font-size: 16px;
+  cursor: pointer;
+  z-index: 1000;
+
+
+  /* fade setup */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+
+/* when zoomed: */
+#resetZoomBtn.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#resetZoomBtn:hover{
+  background: rgba(0, 0, 0, 0.9);
+}

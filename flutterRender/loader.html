@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lottie Loader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Using Inter font */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* New style for the loading spinner */
+        .loader {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col items-center justify-center min-h-screen p-4 transition-colors duration-300">
+
+    <div id="loader-ui" class="w-full max-w-lg text-center p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl transition-all duration-500">
+        <h1 class="text-3xl font-bold mb-2 text-gray-800 dark:text-white">Lottie Animation Loader</h1>
+        <p id="statusMessage" class="text-gray-600 dark:text-gray-400 mb-6">Preparing Flutter Preview...</p>
+
+        <div id="loadingSpinner" class="flex justify-center items-center h-20">
+            <div class="loader"></div>
+        </div>
+        <p id="errorMessage" class="text-red-500 mt-4 h-5"></p>
+    </div>
+
+    <div id="iframe-overlay" class="fixed inset-0 z-50 hidden items-center justify-center p-4 sm:p-6 md:p-8">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md h-[80vh] sm:max-w-lg md:max-w-2xl sm:h-[85vh] flex flex-col relative overflow-hidden">
+            <button id="closeOverlayButton" class="absolute top-3 right-3 z-10 p-2 rounded-full bg-gray-200/50 dark:bg-gray-900/50 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div id="iframe-container" class="w-full h-full flex-grow">
+                </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Get references to the DOM elements
+        const loaderUi = document.getElementById('loader-ui');
+        const statusMessage = document.getElementById('statusMessage');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Overlay and Iframe elements
+        const iframeOverlay = document.getElementById('iframe-overlay');
+        const iframeContainer = document.getElementById('iframe-container');
+        const closeOverlayButton = document.getElementById('closeOverlayButton');
+
+        let receivedLottieData = null; // Store received Lottie data
+        const DELAY_MS = 2500; // 2.5 seconds delay
+
+        // --- Function to open the iframe overlay and send data ---
+        function openIframeWithLottieData(dataToSend) {
+            // Show the overlay
+            iframeOverlay.classList.remove('hidden');
+            iframeOverlay.classList.add('flex');
+
+            // Hide the initial loader UI
+            loaderUi.classList.add('hidden');
+
+            // Clear any previous iframe to ensure a fresh state
+            iframeContainer.innerHTML = '';
+
+            const iframe = document.createElement('iframe');
+
+            iframe.onload = () => {
+                // Short delay to ensure iframe is fully rendered before posting message
+                setTimeout(() => {
+                    if (iframe.contentWindow && dataToSend) {
+                        iframe.contentWindow.postMessage(dataToSend, '*');
+                        statusMessage.textContent = 'Lottie data sent to Flutter app.';
+                    } else if (iframe.contentWindow) {
+                        statusMessage.textContent = 'Flutter app loaded (no data received yet).';
+                    } else {
+                        console.error("Could not get iframe content window.");
+                        errorMessage.textContent = 'Could not communicate with the application.';
+                        closeIframeOverlay(); // Hide overlay if something goes wrong
+                    }
+                }, 100); // Small delay to ensure iframe is ready to receive
+            };
+
+            // Set iframe attributes
+            iframe.src = 'index.html'; // Target Flutter app
+            iframe.className = 'w-full h-full';
+            iframe.style.border = 'none';
+            iframe.title = 'Flutter Lottie Viewer';
+
+            // Append the configured iframe to its container within the overlay
+            iframeContainer.appendChild(iframe);
+        }
+
+        // --- Event Listener for Incoming postMessage ---
+        window.addEventListener('message', (event) => {
+            // IMPORTANT: In production, you should verify event.origin for security!
+            // e.g., if (event.origin !== 'http://your-main-app-domain.com') return;
+
+            // Check if the data looks like Lottie JSON (e.g., it's a string, starts with '{', contains "v" property)
+            try {
+                const parsedData = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                if (parsedData && parsedData.v && parsedData.layers) { // Basic Lottie JSON check
+                    receivedLottieData = event.data; // Store the data as it was received (string or object)
+                    statusMessage.textContent = 'Lottie data received. Opening Flutter preview...';
+                    // If the iframe is already open, send the data immediately
+                    if (iframeOverlay.classList.contains('flex')) {
+                        const targetIframe = iframeContainer.querySelector('iframe');
+                        if (targetIframe && targetIframe.contentWindow) {
+                            targetIframe.contentWindow.postMessage(receivedLottieData, '*');
+                        }
+                    }
+                    // If not, it will be sent when openIframeWithLottieData is called by the timeout
+                }
+            } catch (e) {
+                console.warn("Received non-Lottie data or malformed JSON via postMessage:", event.data, e);
+                // Not a Lottie JSON, so ignore it for this handler
+            }
+        });
+
+        // --- Auto-open Iframe after Delay ---
+        setTimeout(() => {
+            statusMessage.textContent = 'Opening Flutter preview...';
+            loadingSpinner.classList.add('hidden'); // Hide spinner as we're proceeding
+            openIframeWithLottieData(receivedLottieData); // Pass stored data (might be null if none arrived)
+        }, DELAY_MS);
+
+
+        // --- Event Listener for the Close Overlay Button ---
+        closeOverlayButton.addEventListener('click', closeIframeOverlay);
+
+        // Helper function to close the iframe overlay
+        function closeIframeOverlay() {
+            iframeOverlay.classList.add('hidden');
+            iframeOverlay.classList.remove('flex');
+            // Important: Clear the iframe to stop the Flutter app and free up resources
+            iframeContainer.innerHTML = '';
+            // Show the initial loader UI again
+            loaderUi.classList.remove('hidden');
+            statusMessage.textContent = 'Preparing Flutter Preview...';
+            loadingSpinner.classList.remove('hidden'); // Show spinner again
+            errorMessage.textContent = '';
+            receivedLottieData = null; // Reset received data
+        }
+    </script>
+</body>
+</html>

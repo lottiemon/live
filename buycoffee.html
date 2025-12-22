@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donate - Lottie Animation & QR Code</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6a11cb;
+            --secondary-color: #2575fc;
+            --accent-color: #ff6b6b;
+            --background-color: #f0f2f5;
+            --text-color: #333;
+            --light-text-color: #fff;
+            --card-background: #f5f5f5;
+            --shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            --border-radius: 24px;
+            --lottie-height: 350px;
+            --lottie-max-width: 420px;
+            --container-animation-duration: 550ms;
+            --container-animation-timing: cubic-bezier(0.1,0.1,0.1,1);
+            --carousel-item-transition-duration: 550ms;
+            --carousel-item-transition-timing: cubic-bezier(0.6,0,0.2,1);
+            --content-gap: 15px;
+            --carousel-active-item-translateY: 4px;
+            --fade-duration: 0.28s;
+
+            /* Customizable Heart Animation Variables */
+            --heart-animation-duration-base: 1.5s;
+            --heart-animation-duration-random-factor: 1.5;
+            --heart-animation-timing-function: cubic-bezier(0.2, 0.2, 0.1, 1);
+
+            /* New variables for heart travel distance */
+            --heart-travel-distance-y-base: 200px; /* Base vertical travel distance */
+            --heart-travel-distance-y-random-factor: 0.1; /* e.g., 0.3 for +/- 30% randomness */
+
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+
+
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        .page-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .file-input-wrapper {
+            display: none; /* Initially hidden */
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 10px; /* Reduced margin */
+            width: 100%;
+            max-width: 500px;
+        }
+        .file-input-wrapper.visible {
+            display: flex; /* Show when needed */
+        }
+        #loadingStatus {
+            font-style: italic;
+            color: #555;
+            margin-bottom: 15px;
+            text-align: center;
+            min-height: 1.2em;
+        }
+
+
+        #hearts-animation-container {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: var(--lottie-max-width);
+            height: var(--lottie-height);
+            pointer-events: none;
+            z-index: 9;
+            overflow: visible;
+            transition: opacity var(--fade-duration) ease-out;
+        }
+
+        .heart {
+            position: absolute;
+            color: var(--accent-color);
+            opacity: 0;
+            animation-name: floatUp;
+            animation-timing-function: var(--heart-animation-timing-function);
+            transform-origin: center center;
+            /* --heart-travel-distance-y is now set per heart by JS */
+            --translateX-end: 0px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .heart svg {
+            width: 28px;
+            height: 28px;
+            display: block;
+        }
+
+
+        @keyframes floatUp {
+            0% { transform: translateY(0px) translateX(0px) scale(0.2); opacity: 1; }
+            25% {  opacity: 1; }
+            /* Uses the --heart-travel-distance-y set dynamically for each heart by JS */
+            100% { transform: translateY(calc(var(--heart-travel-distance-y) * -1)) translateX(var(--translateX-end)) scale(1); opacity: 0; }
+        }
+
+
+        .lottie-preview-container {
+            width: 100%;
+            max-width: var(--lottie-max-width);
+            height: var(--lottie-height);
+            position: relative;
+            border-radius: var(--border-radius);
+            z-index: 10;
+            margin-bottom: -150px;
+            margin-left:20px;
+            transition: opacity var(--fade-duration) ease-out, transform var(--fade-duration) ease-out;
+		pointer-events: none; 
+        }
+
+        #lottie-preview {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            border-radius: var(--border-radius);
+        }
+
+        .container {
+            padding: 0;
+            border-radius: var(--border-radius);
+            width: 450px;
+            text-align: center;
+
+            opacity: 0;
+            position: relative;
+            z-index: 5;
+            transition: height var(--container-animation-duration) var(--container-animation-timing),
+                        opacity var(--fade-duration) ease-out,
+                        transform var(--fade-duration) ease-out;
+	          background-image: url('curvedBG.svg');
+            background-repeat: no-repeat;
+            background-size: contain;
+            background-position: center;
+            padding-bottom: 14px;
+        }
+        .container.visible {
+            opacity: 1;
+            overflow: hidden;
+        }
+
+        .container-content-wrapper {
+            opacity: 0;
+            transition: opacity var(--container-animation-duration) var(--container-animation-timing);
+            padding: 110px 20px 20px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 45px;
+        }
+        .container.visible .container-content-wrapper {
+            opacity: 1;
+        }
+
+        .content-fading-out {
+            opacity: 0 !important;
+            pointer-events: none;
+        }
+
+
+        #lottieFile { display: none; }
+        .file-input-label {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: var(--light-text-color); padding: 12px 25px; border-radius: var(--border-radius);
+            cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: inline-block; font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .file-input-label:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
+        #fileName { font-style: italic; color: #777; min-height: 1.2em; }
+
+        .greeting-text {
+            font-size: 0.8em;
+            color: var(--text-color);
+            text-align: center;
+            position: relative;
+            max-width: 80%;
+            margin-bottom: -20px;
+            margin-top: 8px;
+            font-weight: 600;
+            opacity: 0.25;
+            letter-spacing: 2.5PX;
+        }
+
+        .carousel-container {
+            width: 100%;
+            max-width: 350px;
+            margin-left: auto;
+            margin-right: auto;
+            overflow: hidden;
+            position: relative;
+            height: 60px;
+        }
+
+        .carousel-items-wrapper {
+            display: flex;
+            align-items: flex-end;
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            height: 50px;
+            transition: transform var(--carousel-item-transition-duration) var(--carousel-item-transition-timing);
+        }
+
+        .carousel-item {
+            flex-shrink: 0;
+            width: 100px;
+            height: 100%;
+            margin: 0 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--text-color);
+            cursor: pointer;
+            transform-origin: center bottom;
+            transition: transform var(--carousel-item-transition-duration) var(--carousel-item-transition-timing),
+                        opacity var(--carousel-item-transition-duration) var(--carousel-item-transition-timing);
+            box-sizing: border-box;
+            padding: 0 5px;
+        }
+
+        .carousel-item.carousel-item-custom-text {
+            font-size: 1.4rem;
+        }
+
+        .carousel-item.active {
+            transform: scale(1.1) translateY(var(--carousel-active-item-translateY));
+            opacity: 1;
+        }
+
+        .carousel-item:not(.active) {
+            transform: scale(0.7);
+            opacity: 0.4;
+        }
+
+        .custom-amount-symbol {
+            margin-right: 1px;
+            font-size: 1.6rem;
+        }
+
+        .custom-amount-input {
+            padding: 0px;
+            font-size: 1.7rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: bold;
+            color: var(--text-color);
+            border: none;
+            background-color: transparent;
+            text-align: center;
+            box-sizing: border-box;
+            outline: none;
+            min-width: 10px;
+        }
+        .custom-amount-input::placeholder {
+          color: #bbb;
+          opacity: 1;
+        }
+        .custom-amount-input::-webkit-outer-spin-button,
+        .custom-amount-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .custom-amount-input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .send-button {
+            background: #8b6e32;
+            color: var(--light-text-color);
+            padding: 12px 30px;
+            border: none;
+            border-radius: 999px;
+            font-family: 'Inter', sans-serif;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 12px;		    margin-bottom: 36px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity var(--fade-duration) ease-out;
+		    letter-spacing: 0.6px;
+        }
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px #E9D4AB;
+        }
+        .send-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .footer-text { margin-top: 30px; margin-bottom: 20px; font-size: 0.9em; color: #888; }
+
+        /* QR Code Container Styles */
+        #qr-code-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center; /* Changed to center content vertically */
+      position: fixed; /* Changed to fixed for screen centering */
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -30%); /* For precise centering */
+      width: 400px; /* Set specific width */
+      height: 500px; /* Set specific height */
+      background-color: var(--card-background);
+      border-radius: var(--border-radius);
+      opacity: 0;
+      /* Removed transform: translateY(50px); as centering transform handles positioning */
+      transition: opacity var(--fade-duration) cubic-bezier(0.1,0.1,0.2,1), transform var(--fade-duration) cubic-bezier(0.1,0.1,0.2,1);
+      z-index: 20;
+      padding: 20px;
+      box-sizing: border-box;
+      visibility: hidden;
+  }
+
+  #qr-code-container.visible {
+      opacity: 1;
+      /* transform: translateY(0); */ /* This might also need adjustment or removal if translate(-50%, -50%) is always active */
+      visibility: visible;
+  }
+
+  /* You might also need to adjust the #qr-code-itself if you want the QR code image to be centered within this new overlay size */
+  #qr-code-itself {
+      margin-top: 0; /* Adjust as needed, original was 50px, could be less or centered */
+      /* Consider flex properties on #qr-code-container to center this child if needed */
+  }
+
+        #qr-code-container.visible {
+            opacity: 1;
+          transform: translate(-50%, -60%);
+            visibility: visible;
+        }
+
+        #backToDonateBtn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            z-index: 25; /* Above other QR content */
+        }
+        #backToDonateBtn svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--text-color);
+        }
+
+
+        #qr-code-itself {
+            margin-top: 50px; /* Space below back button */
+            padding: 15px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px; /* Space below QR */
+        }
+        #qr-code-itself img,
+        #qr-code-itself canvas {
+            display: block;
+            max-width: 100%;
+        }
+
+        .qr-payment-info {
+            font-size: 1.4em;
+            color: var(--text-color);
+            text-align: center;
+            margin-bottom: 15px; /* Space below "Pay Amount" */
+        }
+        .qr-payment-info strong {
+            font-weight: 700; /* Bold for amount */
+        }
+
+        .upi-id-pill {
+            display: flex;
+            align-items: center;
+            background-color: #e0e0e0; /* Light grey pill background */
+            border-radius: 999px; /* Pill shape */
+           padding: 8px 14px;
+            padding-left: 10px;
+            font-size: 0.9em;
+            color: var(--text-color);
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); /* Subtle inner shadow */
+        }
+
+        .upi-profile-pic-placeholder {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: #ccc; /* Placeholder color */
+            border: 1px solid #bbb;
+            margin-right: 10px;
+             background-image: url('me.jpg'); 
+             background-size: cover;
+             background-position: center; 
+        }
+         .upi-id-text {
+            font-weight: 500;
+         }
+
+         #preview-donation-wrapper{
+           position: absolute;
+           top: -12%;
+         }
+
+         .send-button {
+    /* ... your existing .send-button styles ... */
+    display: inline-flex; /* Helps align items nicely */
+    align-items: center;   /* Vertically aligns icon and text */
+    justify-content: center; /* Centers content if button has fixed width */
+    padding-left: 29px;
+    padding-right: 34px;
+}
+
+         .button-heart-icon {
+    width: 1em;  /* Adjust size as needed, relative to font size */
+    height: 1em; /* Adjust size as needed */
+    margin-right: 0.5em; /* Space between icon and "Send" text, adjust as needed */
+    /* vertical-align: middle; -- Might not be needed if using flexbox on parent */
+}
+
+
+	    .copy-upi-button {
+    background: transparent;
+    border: none;
+    padding: 5px;
+    margin-left: 10px; /* Adjust spacing as needed */
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%; /* Optional: make the button itself circular */
+    transition: background-color 0.2s ease;
+}
+
+.copy-upi-button:hover {
+    background-color: rgba(0, 0, 0, 0.05); /* Subtle hover effect */
+}
+
+.copy-upi-button svg {
+    width: 18px; /* Adjust icon size */
+    height: 18px; /* Adjust icon size */
+    fill: var(--text-color); /* Use your theme's text color */
+}
+
+.copy-upi-button .copy-icon.hidden,
+.copy-upi-button .checkmark-icon.hidden {
+    display: none;
+}
+
+.copy-upi-button .checkmark-icon {
+    fill: green; /* Color for the success checkmark */
+}
+
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <p id="loadingStatus">Loading default animation...</p> <div class="file-input-wrapper" id="fileInputWrapper"> <input type="file" id="lottieFile" accept=".json,application/json">
+            <label for="lottieFile" class="file-input-label">Upload Lottie JSON</label>
+            <p id="fileName">No file selected.</p>
+        </div>
+
+        <div id="preview-donation-wrapper">
+            <div id="hearts-animation-container"></div>
+
+            <div class="lottie-preview-container" id="lottiePreviewContainer">
+                <div id="lottie-preview"></div>
+            </div>
+
+            <div class="container" id="mainContainer">
+                <div class="container-content-wrapper" id="containerContent">
+                    <p class="greeting-text">AMOUNT</p>
+
+                    <div class="carousel-container" id="amountCarouselContainer">
+                        <div class="carousel-items-wrapper" id="carouselItemsWrapper">
+                        </div>
+                    </div>
+
+                    <button class="send-button" id="sendAmountBtn" disabled>
+                        <svg class="button-heart-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                        Send
+                    </button>
+
+                </div>
+            </div>
+
+            <div id="qr-code-container">
+                <button id="backToDonateBtn" aria-label="Go back to amount selection">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                    </svg>
+                </button>
+                <div id="qr-code-itself"></div>
+                <p class="qr-payment-info">Send <strong id="qr-amount-bold">₹<span>0.00</span></strong></p>
+                               <div class="upi-id-pill">
+    <div class="upi-profile-pic-placeholder"></div>
+    <span class="upi-id-text" id="upiIdToCopy">9034401875@pz</span>
+    <button id="copyUpiButton" class="copy-upi-button" aria-label="Copy UPI ID">
+        <svg class="copy-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+        </svg>
+        <svg class="checkmark-icon" style="display:none;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+        </svg>
+    </button>
+</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const lottiePreviewEl = document.getElementById('lottie-preview');
+        const lottiePreviewContainerEl = document.getElementById('lottiePreviewContainer');
+        const lottieFileInput = document.getElementById('lottieFile');
+        const fileNameDisplay = document.getElementById('fileName');
+        const fileInputWrapper = document.getElementById('fileInputWrapper'); // Get file input wrapper
+        const loadingStatus = document.getElementById('loadingStatus'); // Get status p tag
+
+        const mainContainer = document.getElementById('mainContainer');
+        const containerContent = document.getElementById('containerContent');
+        const sendAmountBtn = document.getElementById('sendAmountBtn');
+        const carouselContainer = document.getElementById('amountCarouselContainer');
+        const carouselItemsWrapper = document.getElementById('carouselItemsWrapper');
+        const heartsContainer = document.getElementById('hearts-animation-container');
+
+        const qrCodeContainer = document.getElementById('qr-code-container');
+        const qrCodeItself = document.getElementById('qr-code-itself');
+        const qrAmountBoldSpan = document.getElementById('qr-amount-bold').querySelector('span');
+        const backToDonateBtn = document.getElementById('backToDonateBtn');
+
+
+        // Lottie and Animation State
+        let animation;
+        let animationData; // This will hold the loaded Lottie data
+        const segmentDurations = {};
+
+        // Donation Levels Configuration
+        const donationLevels = [
+            { amount: 50, segment: 'small', type: 'fixed' },
+            { amount: 150, segment: 'medium', type: 'fixed' },
+            { amount: 350, segment: 'large', type: 'fixed' },
+            { type: 'custom', displayText: 'CUSTOM', segment: 'gift', amount: null }
+        ];
+        let currentLevelIndex = 0;
+        let previousClickedLevelIndex = -1;
+        let currentCustomAmount = null;
+        let giftbackPlayedForThisCustomAmount = false;
+        let previousHeartTier = 0;
+
+        let sizerSpan = null;
+
+        const heartOriginYOffset = 30;
+        const heartXSpreadPercent = 25;
+        const heartClusterXOffsetPercent = 0;
+        const baseNumberOfHearts = 6;
+
+        const customHeartSVG = `
+            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+        `;
+
+
+	const copyUpiButton = document.getElementById('copyUpiButton');
+const upiIdElement = document.getElementById('upiIdToCopy'); // The span holding the UPI ID
+
+if (copyUpiButton && upiIdElement) {
+    const upiIdValue = upiIdElement.textContent.trim(); // Get the UPI ID text
+    const copyIcon = copyUpiButton.querySelector('.copy-icon');
+    const checkmarkIcon = copyUpiButton.querySelector('.checkmark-icon');
+
+    copyUpiButton.addEventListener('click', () => {
+        if (!navigator.clipboard) {
+            // Fallback for older browsers or non-secure contexts if needed
+            // For simplicity, we'll alert the user or they can use the existing showCustomAlert
+            showCustomAlert('Clipboard API not available. Please copy manually.');
+            console.error('Clipboard API not available.');
+            return;
+        }
+
+        navigator.clipboard.writeText(upiIdValue).then(() => {
+            // Success! Visual feedback:
+            if (copyIcon && checkmarkIcon) {
+                copyIcon.style.display = 'none';
+                checkmarkIcon.style.display = 'inline-block';
+                copyUpiButton.disabled = true; // Briefly disable button
+            }
+
+            // Revert after a short delay
+            setTimeout(() => {
+                if (copyIcon && checkmarkIcon) {
+                    copyIcon.style.display = 'inline-block';
+                    checkmarkIcon.style.display = 'none';
+                    copyUpiButton.disabled = false;
+                }
+            }, 2000); // Show checkmark for 2 seconds
+
+        }).catch(err => {
+            console.error('Failed to copy UPI ID: ', err);
+            // You can use your existing showCustomAlert for error feedback
+            showCustomAlert('Failed to copy. Please try again or copy manually.');
+        });
+    });
+}
+
+
+	    
+
+        let qrCodeInstance = null;
+
+        function getTextWidth(text) {
+            if (!sizerSpan) {
+                sizerSpan = document.createElement('span');
+                sizerSpan.style.fontFamily = getComputedStyle(document.documentElement).getPropertyValue('--font-family') || "'Inter', sans-serif";
+                sizerSpan.style.fontSize = '1.7rem';
+                sizerSpan.style.fontWeight = 'bold';
+                sizerSpan.style.visibility = 'hidden';
+                sizerSpan.style.position = 'absolute';
+                sizerSpan.style.whiteSpace = 'nowrap';
+                sizerSpan.style.padding = '0';
+                sizerSpan.style.border = '0';
+                sizerSpan.style.margin = '0';
+                document.body.appendChild(sizerSpan);
+            }
+            sizerSpan.textContent = text;
+            return sizerSpan.offsetWidth;
+        }
+
+        function findNamedMarkers(animData) {
+            const markers = {};
+            const DEFAULT_FRAME_RATE = animData.fr || 30;
+
+            if (animData && animData.markers && Array.isArray(animData.markers)) {
+                animData.markers.forEach(marker => {
+                    if (marker && typeof marker.cm === 'string' && typeof marker.tm !== 'undefined') {
+                        let duration = parseInt(marker.dr, 10);
+                        if (isNaN(duration) || duration <= 0) duration = DEFAULT_FRAME_RATE;
+                        markers[marker.cm] = { frame: parseInt(marker.tm, 10), duration: duration };
+                    }
+                });
+            }
+
+            const defaultSmallEndFrame = (markers.small?.frame ?? 0) + (markers.small?.duration ?? DEFAULT_FRAME_RATE * 1);
+            const defaultMediumEndFrame = (markers.medium?.frame ?? defaultSmallEndFrame) + (markers.medium?.duration ?? DEFAULT_FRAME_RATE * 1.5);
+            const defaultLargeEndFrame = (markers.large?.frame ?? defaultMediumEndFrame) + (markers.large?.duration ?? DEFAULT_FRAME_RATE * 2);
+            const defaultGiftEndFrame = (markers.gift?.frame ?? defaultLargeEndFrame) + (markers.gift?.duration ?? DEFAULT_FRAME_RATE * 1);
+
+
+            const segmentsToEnsure = {
+                small: {
+                    defaultFrame: markers.small?.frame ?? 0,
+                    defaultDuration: markers.small?.duration ?? DEFAULT_FRAME_RATE * 1
+                },
+                medium: {
+                    defaultFrame: markers.medium?.frame ?? defaultSmallEndFrame,
+                    defaultDuration: markers.medium?.duration ?? DEFAULT_FRAME_RATE * 1.5
+                },
+                large: {
+                    defaultFrame: markers.large?.frame ?? defaultMediumEndFrame,
+                    defaultDuration: markers.large?.duration ?? DEFAULT_FRAME_RATE * 2
+                },
+                gift: {
+                    defaultFrame: markers.gift?.frame ?? defaultLargeEndFrame,
+                    defaultDuration: markers.gift?.duration ?? DEFAULT_FRAME_RATE * 1
+                },
+                giftback: {
+                    defaultFrame: markers.giftback?.frame ?? defaultGiftEndFrame,
+                    defaultDuration: markers.giftback?.duration ?? DEFAULT_FRAME_RATE * 1.5
+                }
+            };
+
+            for (const segName in segmentsToEnsure) {
+                if (!markers[segName] || markers[segName].frame === undefined || markers[segName].duration <= 0) {
+                    if (!markers[segName]) console.warn(`Marker "${segName}" not found. Using default values.`);
+                    else console.warn(`Marker "${segName}" has invalid frame/duration. Using default values.`);
+                    markers[segName] = {
+                        frame: segmentsToEnsure[segName].defaultFrame,
+                        duration: segmentsToEnsure[segName].defaultDuration
+                    };
+                }
+                markers[segName].frame = Number(markers[segName].frame) || 0;
+                markers[segName].duration = Number(markers[segName].duration) || DEFAULT_FRAME_RATE;
+            }
+            return markers;
+        }
+
+        function playLottieSegment(segmentName, segmentFrameRange) {
+            try {
+                if (animation && animation.isLoaded && segmentFrameRange && segmentFrameRange[1] > segmentFrameRange[0]) {
+                    animation.playSegments(segmentFrameRange, true);
+                } else if (animation && animation.isLoaded) {
+                    const fallbackSegment = 'small';
+                    const fallbackRange = segmentDurations[fallbackSegment];
+                    console.warn(`Segment '${segmentName}' not found or invalid. Attempting to play fallback '${fallbackSegment}'.`);
+                    if (fallbackRange && fallbackRange[1] > fallbackRange[0]) {
+                        animation.playSegments(fallbackRange, true);
+                    } else {
+                        console.error("Fallback segment 'small' is also invalid or not found.");
+                    }
+                } else {
+                    console.warn("Animation not loaded or segment data missing, cannot play segment.");
+                }
+            } catch (error) {
+                console.error(`Error playing segment '${segmentName}':`, error);
+            }
+        }
+
+        function createAndAnimateHeart() {
+            if (!heartsContainer) return;
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            if (customHeartSVG && customHeartSVG.trim() !== '') {
+                heart.innerHTML = customHeartSVG;
+            } else {
+                heart.textContent = '❤️';
+            }
+            heart.style.bottom = `${heartOriginYOffset}px`;
+            const baseMinXPercent = (100 - heartXSpreadPercent) / 2;
+            const randomXInSpread = Math.random() * heartXSpreadPercent;
+            const finalXStartPercent = baseMinXPercent + randomXInSpread + heartClusterXOffsetPercent;
+            heart.style.left = `${finalXStartPercent}%`;
+
+            const baseDuration = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--heart-animation-duration-base').replace('s', ''));
+            const randomDurationFactor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--heart-animation-duration-random-factor').replace('s', ''));
+            const randomDuration = baseDuration + Math.random() * randomDurationFactor;
+
+            const baseTravelY = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--heart-travel-distance-y-base').replace('px', ''));
+            const travelYRandomFactor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--heart-travel-distance-y-random-factor'));
+            const actualTravelDistanceY = baseTravelY * (1 + (Math.random() - 0.5) * 2 * travelYRandomFactor);
+
+
+            const translateXEnd = (Math.random() - 0.5) * 100;
+            heart.style.setProperty('--translateX-end', `${translateXEnd}px`);
+            heart.style.setProperty('--heart-travel-distance-y', `${actualTravelDistanceY}px`);
+            heart.style.animationDuration = `${randomDuration}s`;
+
+            heartsContainer.appendChild(heart);
+            heart.addEventListener('animationend', () => heart.remove());
+        }
+
+        function triggerHearts(count = baseNumberOfHearts) {
+            const staggerDelay = 120;
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    createAndAnimateHeart();
+                }, i * staggerDelay);
+            }
+        }
+
+        function setupCarousel() {
+            carouselItemsWrapper.innerHTML = '';
+            donationLevels.forEach((level, index) => {
+                const item = document.createElement('div');
+                item.classList.add('carousel-item');
+                item.dataset.index = index;
+                if (level.type === 'custom') {
+                    item.textContent = level.displayText;
+                    item.classList.add('carousel-item-custom-text');
+                } else {
+                    item.textContent = `₹${level.amount}`;
+                }
+                item.addEventListener('click', () => {
+                    previousClickedLevelIndex = currentLevelIndex;
+                    setActiveCarouselItem(index);
+                });
+                carouselItemsWrapper.appendChild(item);
+            });
+            if (donationLevels.length > 0) {
+                previousClickedLevelIndex = -1;
+                setActiveCarouselItem(0, false);
+            }
+        }
+
+        function setActiveCarouselItem(selectedIndex, animateScroll = true) {
+            if (selectedIndex < 0 || selectedIndex >= donationLevels.length) return;
+
+            const previouslyActiveItemElement = carouselItemsWrapper.querySelector('.carousel-item.active');
+            if (previouslyActiveItemElement) {
+                const prevInternalIndex = parseInt(previouslyActiveItemElement.dataset.index);
+                if (donationLevels[prevInternalIndex].type === 'custom') {
+                    const existingInput = previouslyActiveItemElement.querySelector('.custom-amount-input');
+                    if (existingInput) currentCustomAmount = parseFloat(existingInput.value) || currentCustomAmount;
+                }
+            }
+
+            currentLevelIndex = selectedIndex;
+            const items = carouselItemsWrapper.children;
+            const selectedLevel = donationLevels[selectedIndex];
+            const CAROUSEL_CONTENT_LEFT_SHIFT_PX = -2;
+
+            if (selectedLevel.type !== 'custom' || (selectedLevel.type === 'custom' && selectedIndex !== previousClickedLevelIndex)) {
+                giftbackPlayedForThisCustomAmount = false;
+                previousHeartTier = 0;
+            }
+
+
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                const levelData = donationLevels[i];
+                item.classList.remove('active', 'carousel-item-custom-text');
+
+                if (i === selectedIndex) {
+                    item.classList.add('active');
+                    if (selectedLevel.type === 'custom') {
+                        item.innerHTML = '';
+                        const rupeeSymbolSpan = document.createElement('span');
+                        rupeeSymbolSpan.classList.add('custom-amount-symbol');
+                        rupeeSymbolSpan.textContent = '₹';
+                        item.appendChild(rupeeSymbolSpan);
+
+                        const input = document.createElement('input');
+                        input.type = 'number';
+                        input.classList.add('custom-amount-input');
+                        input.value = currentCustomAmount && currentCustomAmount > 0 ? currentCustomAmount : '';
+                        input.placeholder = "0";
+                        const INPUT_HORIZONTAL_PADDING_PX = 0;
+                        const CURSOR_BUFFER_PX = 10;
+
+                        const setInputWidth = (currentValue) => {
+                            let textToMeasure = currentValue || input.placeholder;
+                            if (!textToMeasure || textToMeasure.length === 0) textToMeasure = '0';
+                            let contentWidth = getTextWidth(textToMeasure);
+                            input.style.width = (contentWidth + INPUT_HORIZONTAL_PADDING_PX + CURSOR_BUFFER_PX) + 'px';
+                        };
+                        setInputWidth(input.value);
+
+                        input.addEventListener('input', (e) => {
+                            let value = e.target.value;
+                            if (value.length > 4) {
+                                e.target.value = value.slice(0, 4);
+                                return;
+                            }
+                            currentCustomAmount = parseFloat(value);
+                            if (isNaN(currentCustomAmount)) currentCustomAmount = null;
+
+                            setInputWidth(value);
+
+                            let newHeartTier = 0;
+                            if (currentCustomAmount > 350 && currentCustomAmount <= 999) newHeartTier = 1;
+                            else if (currentCustomAmount >= 1000 && currentCustomAmount <= 3000) newHeartTier = 2;
+                            else if (currentCustomAmount >= 3001 && currentCustomAmount <= 6000) newHeartTier = 3;
+                            else if (currentCustomAmount >= 6001 && currentCustomAmount <= 9998) newHeartTier = 4;
+                            else if (currentCustomAmount === 9999) newHeartTier = 5;
+
+                            if (currentCustomAmount && currentCustomAmount > 350) {
+                                if (newHeartTier > previousHeartTier || (!giftbackPlayedForThisCustomAmount && newHeartTier > 0) ) {
+                                    if (segmentDurations['giftback'] && animation && animation.isLoaded) {
+                                        playLottieSegment('giftback', segmentDurations['giftback']);
+                                    }
+                                    giftbackPlayedForThisCustomAmount = true;
+
+                                    if (newHeartTier === 5) {
+                                        triggerHearts(Math.round(baseNumberOfHearts * 2.5));
+                                        setTimeout(() => triggerHearts(Math.round(baseNumberOfHearts * 2.5)), 250);
+                                    } else if (newHeartTier === 4) {
+                                        triggerHearts(Math.round(baseNumberOfHearts * 2.5));
+                                    } else if (newHeartTier === 3) {
+                                        triggerHearts(Math.round(baseNumberOfHearts * 2.0));
+                                    } else if (newHeartTier === 2) {
+                                        triggerHearts(Math.round(baseNumberOfHearts * 1.5));
+                                    } else if (newHeartTier === 1) {
+                                        triggerHearts(baseNumberOfHearts);
+                                    }
+                                }
+                            } else {
+                                giftbackPlayedForThisCustomAmount = false;
+                            }
+                            previousHeartTier = newHeartTier;
+                        });
+                        item.appendChild(input);
+                        if (document.activeElement !== input) requestAnimationFrame(() => input.focus());
+                    } else item.textContent = `₹${levelData.amount}`;
+                } else {
+                    if (levelData.type === 'custom') {
+                        item.textContent = levelData.displayText;
+                        item.classList.add('carousel-item-custom-text');
+                    } else item.textContent = `₹${levelData.amount}`;
+                }
+            }
+
+            const activeItemElement = items[selectedIndex];
+            if (activeItemElement) {
+                requestAnimationFrame(() => {
+                    const itemWidth = activeItemElement.offsetWidth;
+                    const itemMargin = parseInt(getComputedStyle(activeItemElement).marginLeft) + parseInt(getComputedStyle(activeItemElement).marginRight);
+                    const itemFullWidth = itemWidth + itemMargin;
+                    const containerCenter = carouselContainer.offsetWidth / 2;
+                    let scrollPosition = 0;
+                    for (let k = 0; k < selectedIndex; k++) scrollPosition += items[k].offsetWidth + (parseInt(getComputedStyle(items[k]).marginLeft) + parseInt(getComputedStyle(items[k]).marginRight));
+                    scrollPosition += (itemFullWidth / 2);
+                    const scrollOffset = containerCenter - scrollPosition + CAROUSEL_CONTENT_LEFT_SHIFT_PX;
+                    if (!animateScroll) carouselItemsWrapper.style.transition = 'none';
+                    carouselItemsWrapper.style.transform = `translateX(${scrollOffset}px)`;
+                    if (!animateScroll) {
+                        void carouselItemsWrapper.offsetWidth;
+                        carouselItemsWrapper.style.transition = `transform var(--carousel-item-transition-duration) var(--carousel-item-transition-timing)`;
+                    }
+                });
+            }
+
+            if (animationData && selectedLevel && segmentDurations[selectedLevel.segment]) {
+                if (selectedIndex !== previousClickedLevelIndex) {
+                    playLottieSegment(selectedLevel.segment, segmentDurations[selectedLevel.segment]);
+                    if (selectedLevel.type === 'custom') {
+                        let initialHeartTier = 0;
+                        if (currentCustomAmount > 350 && currentCustomAmount <= 999) initialHeartTier = 1;
+                        else if (currentCustomAmount >= 1000 && currentCustomAmount <= 3000) initialHeartTier = 2;
+                        else if (currentCustomAmount >= 3001 && currentCustomAmount <= 6000) initialHeartTier = 3;
+                        else if (currentCustomAmount >= 6001 && currentCustomAmount <= 9998) initialHeartTier = 4;
+                        else if (currentCustomAmount === 9999) initialHeartTier = 5;
+
+                        if (currentCustomAmount && currentCustomAmount > 350 && !giftbackPlayedForThisCustomAmount && initialHeartTier > 0) {
+                             if (segmentDurations['giftback'] && animation && animation.isLoaded) {
+                                playLottieSegment('giftback', segmentDurations['giftback']);
+                            }
+                            giftbackPlayedForThisCustomAmount = true;
+
+                            if (initialHeartTier === 5) {
+                                triggerHearts(Math.round(baseNumberOfHearts * 2.5));
+                                setTimeout(() => triggerHearts(Math.round(baseNumberOfHearts * 2.5)), 250);
+                            } else if (initialHeartTier === 4) triggerHearts(Math.round(baseNumberOfHearts * 2.5));
+                            else if (initialHeartTier === 3) triggerHearts(Math.round(baseNumberOfHearts * 2.0));
+                            else if (initialHeartTier === 2) triggerHearts(Math.round(baseNumberOfHearts * 1.5));
+                            else if (initialHeartTier === 1) triggerHearts(baseNumberOfHearts);
+                        }
+                        previousHeartTier = initialHeartTier;
+                    }
+                }
+            } else if (animationData && selectedLevel) {
+                console.warn(`Segment data for '${selectedLevel.segment}' not found.`);
+            }
+        }
+
+        // Function to process Lottie data (used by both fetch and file input)
+        function processLottieData(lottieJsonData, sourceName) {
+            try {
+                animationData = lottieJsonData; // Already parsed if from fetch, needs parsing if from file reader
+                if (animation) animation.destroy();
+                lottiePreviewEl.innerHTML = '';
+                giftbackPlayedForThisCustomAmount = false;
+                previousHeartTier = 0;
+                if (heartsContainer) heartsContainer.innerHTML = '';
+
+                const markers = findNamedMarkers(animationData);
+                donationLevels.forEach(level => {
+                    if (markers[level.segment]) segmentDurations[level.segment] = [markers[level.segment].frame, markers[level.segment].frame + markers[level.segment].duration];
+                    else {
+                        console.warn(`Marker for segment '${level.segment}' not found.`);
+                        segmentDurations[level.segment] = [0, animationData.fr || 30];
+                    }
+                });
+                if (markers['giftback']) segmentDurations['giftback'] = [markers['giftback'].frame, markers['giftback'].frame + markers['giftback'].duration];
+                else {
+                    console.warn(`Marker for segment 'giftback' not found.`);
+                    segmentDurations['giftback'] = [0, animationData.fr || 30];
+                }
+
+                animation = lottie.loadAnimation({
+                    container: lottiePreviewEl,
+                    renderer: 'canvas',
+                    loop: false,
+                    autoplay: false,
+                    animationData: animationData
+                });
+                animation.addEventListener('DOMLoaded', () => {
+                    sendAmountBtn.disabled = false;
+                    setupCarousel();
+                    mainContainer.style.height = 'auto';
+                    const fullHeight = mainContainer.scrollHeight;
+                    mainContainer.style.height = '40px';
+                    requestAnimationFrame(() => {
+                        mainContainer.style.height = fullHeight + 'px';
+                        mainContainer.classList.add('visible');
+                        containerContent.style.opacity = '1';
+                    });
+                    lottiePreviewContainerEl.classList.remove('content-fading-out');
+                    mainContainer.classList.remove('content-fading-out');
+                    heartsContainer.classList.remove('content-fading-out');
+                    sendAmountBtn.classList.remove('content-fading-out');
+                    qrCodeContainer.classList.remove('visible');
+                    if(qrCodeInstance) qrCodeItself.innerHTML = '';
+                      loadingStatus.textContent = ``;
+                    //loadingStatus.textContent = `Loaded from: ${sourceName}`;
+                    if (sourceName !== 'coffee.json (default)') { // If loaded from file input
+                        fileInputWrapper.classList.remove('visible'); // Hide file input again
+                    }
+                });
+                animation.addEventListener('error', (err) => {
+                    console.error("Lottie player error:", err);
+                    lottiePreviewEl.innerHTML = "<p style='color:red; text-align:center;'>Lottie player error.</p>";
+                    sendAmountBtn.disabled = true;
+                    loadingStatus.textContent = `Error loading ${sourceName}. Try uploading a file.`;
+                    fileInputWrapper.classList.add('visible');
+                });
+                animation.addEventListener('data_failed', () => {
+                    console.error("Lottie data_failed event triggered.");
+                    lottiePreviewEl.innerHTML = "<p style='color:red; text-align:center;'>Failed to load Lottie data.</p>";
+                    sendAmountBtn.disabled = true;
+                    loadingStatus.textContent = `Failed to load data from ${sourceName}. Try uploading a file.`;
+                    fileInputWrapper.classList.add('visible');
+                });
+            } catch (error) {
+                console.error("File processing or Lottie setup error:", error);
+                loadingStatus.textContent = "Error: Invalid JSON or Lottie setup issue. Please upload a file.";
+                lottiePreviewEl.innerHTML = "<p style='color:red; text-align:center;'>Could not load animation.</p>";
+                sendAmountBtn.disabled = true;
+                fileInputWrapper.classList.add('visible');
+            }
+        }
+
+
+        async function tryLoadDefaultLottie() {
+            loadingStatus.textContent = "Attempting to load coffee.json...";
+            try {
+                const response = await fetch('coffee.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const lottieJsonData = await response.json();
+                processLottieData(lottieJsonData, 'coffee.json (default)');
+                fileInputWrapper.classList.remove('visible'); // Keep hidden if default loads
+            } catch (error) {
+                console.warn("Failed to fetch or parse coffee.json:", error);
+                loadingStatus.textContent = "coffee.json not found or invalid. Please upload a Lottie file.";
+                fileInputWrapper.classList.add('visible'); // Show file input as fallback
+                // Clear any potentially broken Lottie preview
+                if (animation) animation.destroy();
+                lottiePreviewEl.innerHTML = "";
+                sendAmountBtn.disabled = true;
+                mainContainer.classList.remove('visible');
+                mainContainer.style.height = '40px';
+                containerContent.style.opacity = '0';
+                carouselItemsWrapper.innerHTML = '';
+            }
+        }
+
+
+        lottieFileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file && (file.type === 'application/json' || file.name.endsWith('.json'))) {
+                fileNameDisplay.textContent = `Selected: ${file.name}`;
+                loadingStatus.textContent = `Loading ${file.name}...`;
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    try {
+                        const lottieJsonData = JSON.parse(e.target.result);
+                        processLottieData(lottieJsonData, file.name);
+                    } catch (parseError) {
+                        console.error("Error parsing uploaded JSON file:", parseError);
+                        loadingStatus.textContent = "Error: Invalid JSON file. Please try another.";
+                         if (animation) animation.destroy();
+                        lottiePreviewEl.innerHTML = "<p style='color:red; text-align:center;'>Invalid JSON file.</p>";
+                        sendAmountBtn.disabled = true;
+                    }
+                };
+                reader.readAsText(file);
+            } else {
+                fileNameDisplay.textContent = "Please select a .json file.";
+                if (!animationData) { // Only reset if no animation is currently loaded
+                    loadingStatus.textContent = "Please upload a Lottie file.";
+                }
+            }
+        });
+
+        sendAmountBtn.addEventListener('click', () => {
+            let amountToSend;
+            const selectedLevelData = donationLevels[currentLevelIndex];
+
+            if (selectedLevelData.type === 'custom') {
+                amountToSend = currentCustomAmount;
+                if (!amountToSend || isNaN(amountToSend) || amountToSend <= 0) {
+                    showCustomAlert("Please enter a valid custom amount.");
+                    return;
+                }
+            } else {
+                amountToSend = selectedLevelData.amount;
+            }
+
+            if (animationData && amountToSend) {
+                lottiePreviewContainerEl.classList.add('content-fading-out');
+                mainContainer.classList.add('content-fading-out');
+                heartsContainer.classList.add('content-fading-out');
+
+                const payeeVpa = '9034401875@pz';
+                const payeeName = 'Ishant';
+                const transactionNote = 'Donation';
+                const currency = 'INR';
+
+                const upiParams = new URLSearchParams({
+                    pa: payeeVpa,
+                    pn: payeeName,
+                    am: parseFloat(amountToSend).toFixed(2),
+                    cu: currency,
+                    tn: transactionNote
+                });
+                const upiString = `upi://pay?${upiParams.toString()}`;
+
+                qrAmountBoldSpan.textContent = parseFloat(amountToSend).toFixed(2);
+
+                const fadeOutDurationMs = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fade-duration') || '0.5') * 1000;
+
+                setTimeout(() => {
+                    qrCodeItself.innerHTML = '';
+
+                    if (typeof QRCode === 'undefined') {
+                         console.error("QRCode library is not loaded!");
+                         showCustomAlert("Error: QR Code library not loaded. Please check your internet connection or contact support.");
+                         lottiePreviewContainerEl.classList.remove('content-fading-out');
+                         mainContainer.classList.remove('content-fading-out');
+                         heartsContainer.classList.remove('content-fading-out');
+                         return;
+                     }
+
+                     try {
+                         // ALWAYS create a new QRCode instance after clearing the container
+                         // This ensures the library can properly generate the QR code in the fresh #qr-code-itself element.
+                         qrCodeInstance = new QRCode(qrCodeItself, {
+                             text: upiString,
+                             width: 180, // Or make these dynamic if needed
+                             height: 180,
+                             colorDark: "#000000",
+                             colorLight: "#ffffff",
+                             correctLevel: QRCode.CorrectLevel.H
+                         });
+
+                         // Brief delay to allow QR code to render before checking
+                         // This is a common workaround for some QR rendering timing issues
+                         setTimeout(() => {
+                             if (!qrCodeItself.firstChild || (qrCodeItself.firstChild.tagName !== 'IMG' && qrCodeItself.firstChild.tagName !== 'CANVAS')) {
+                                  console.error("#qr-code-itself is EMPTY or does not contain a QR element after QR generation attempt.", qrCodeItself.innerHTML);
+                                  showCustomAlert("Failed to generate QR code image. It appears empty or invalid.");
+                             }
+                         }, 50); // 50ms delay, adjust if needed
+
+                     } catch (e) {
+                         console.error("Error creating QRCode instance:", e);
+                         showCustomAlert("Error generating QR code image. " + e.message);
+                         lottiePreviewContainerEl.classList.remove('content-fading-out');
+                         mainContainer.classList.remove('content-fading-out');
+                         heartsContainer.classList.remove('content-fading-out');
+                         return; // Prevent further execution if QR fails
+                     }
+                     qrCodeContainer.classList.add('visible');
+                }, fadeOutDurationMs);
+
+
+            } else if (!animationData) {
+                 showCustomAlert("Please upload a Lottie animation first.");
+            } else {
+                 showCustomAlert("Please select or enter an amount.");
+            }
+        });
+
+        backToDonateBtn.addEventListener('click', () => {
+            qrCodeContainer.classList.remove('visible');
+
+            const fadeOutDurationMs = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fade-duration') || '0.5') * 1000;
+
+            setTimeout(() => {
+                lottiePreviewContainerEl.classList.remove('content-fading-out');
+                mainContainer.classList.remove('content-fading-out');
+                heartsContainer.classList.remove('content-fading-out');
+            }, fadeOutDurationMs / 2);
+        });
+
+
+        function showCustomAlert(message) {
+            const existingAlert = document.querySelector('.custom-alert-overlay');
+            if (existingAlert) existingAlert.remove();
+            const overlay = document.createElement('div');
+            overlay.className = 'custom-alert-overlay';
+            overlay.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 15px; box-sizing: border-box;`;
+            const alertBox = document.createElement('div');
+            alertBox.className = 'custom-alert-box';
+            alertBox.style.cssText = `background-color: white; padding: 25px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); text-align: center; max-width: 300px; width: 100%; font-family: 'Inter', sans-serif; box-sizing: border-box;`;
+            const messageP = document.createElement('p');
+            messageP.textContent = message;
+            messageP.style.cssText = 'margin: 0 0 20px 0; font-size: 1em; color: #333; word-wrap: break-word;';
+            const okButton = document.createElement('button');
+            okButton.textContent = 'OK';
+            okButton.style.cssText = `padding: 10px 20px; background: linear-gradient(45deg, var(--primary-color), var(--secondary-color)); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; font-weight: bold; transition: opacity 0.2s;`;
+            okButton.onmouseover = () => okButton.style.opacity = '0.8';
+            okButton.onmouseout = () => okButton.style.opacity = '1';
+            okButton.onclick = () => overlay.remove();
+            alertBox.appendChild(messageP);
+            alertBox.appendChild(okButton);
+            overlay.appendChild(alertBox);
+            document.body.appendChild(overlay);
+        }
+
+        // Initial state setup
+        sendAmountBtn.disabled = true;
+        mainContainer.style.height = '40px';
+        containerContent.style.opacity = '0';
+
+        // Try to load default Lottie on page load
+        tryLoadDefaultLottie();
+
+    </script>
+</body>
+</html>

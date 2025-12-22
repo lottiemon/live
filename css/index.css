@@ -1,0 +1,4120 @@
+:root {
+  --font-family-base: 'Inter', sans-serif;
+  --color-primary: #4CAF50;
+  /* Green */
+  --color-primary-dark: #45a049;
+  --color-secondary: #2196F3;
+  /* Blue */
+  --color-secondary-dark: #1e88e5;
+  --color-accent: #2196f3;
+  /* Yellow */
+  --color-accent-dark: #fbc02d;
+  --color-background: #f7f7f7;
+  /* Slightly lighter */
+  --color-surface: #ffffff;
+  /* Card/element background */
+  --color-border: #e0e0e0;
+  --color-text-primary: #333333;
+  --color-text-secondary: #666666;
+  --color-text-on-primary: #ffffff;
+  --color-text-on-secondary: #ffffff;
+  --color-text-on-accent: #333333;
+  /* Dark text on yellow */
+  --color-disabled: #cccccc;
+  --color-disabled-bg: #eeeeee;
+  --color-checkerboard-light: #f0f0f0;
+  --color-checkerboard-dark: transparent;
+
+  --spacing-xs: 0.25rem;
+  /* 4px */
+  --spacing-sm: 0.8rem;
+  /* 8px */
+  --spacing-md: 1rem;
+  /* 16px */
+  --spacing-lg: 1.5rem;
+  /* 24px */
+  --spacing-xl: 2rem;
+  /* 32px */
+
+  --border-radius-sm: 4px;
+  --border-radius-md: 16px;
+  --border-radius-lg: 16px;
+  --border-radius-pill: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+  --transition-speed: 0.2s ease-in-out;
+
+
+  /* ... your existing variables ... */
+  --overlay-fade-duration: 0.3s;
+  /* Duration for overlay/blur fade */
+  --content-fade-delay: 0.2s;
+  /* Delay before content starts fading in (should be less than overlay duration) */
+  --content-fade-duration: 0.4s;
+  /* Duration for content fade */
+}
+
+/* --- General Reset and Body Styles --- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family-base);
+  /* padding: var(--spacing-xl); */
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  max-width: 1200px;
+  /* Increased max-width slightly */
+  height: 100vh;
+  margin: auto;
+  line-height: 1.6;
+  justify-content: center;
+  overflow-x: auto;
+
+  min-height: 800px;
+
+
+}
+
+body::-webkit-scrollbar {
+  display: none;
+  /* Or width: 0; */
+}
+
+/* --- Layout Areas --- */
+#editorArea,
+#previewArea {
+  display: flex;
+  flex-direction: column;
+}
+
+#editorArea {
+  flex: 1;
+  min-height: 960px;
+  height: 93vh;
+  gap: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+#editorScrollContent {
+  height: 100%;
+  overflow-y: auto;
+  -ms-overflow-style: none;
+  /* IE 10+ */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+#editorScrollContent::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari, Opera */
+}
+
+.editor-gradient-overlay-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 30px;
+  background: linear-gradient(to top, rgba(247, 247, 247, 0), #f7f7f7);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.editor-gradient-overlay-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background: linear-gradient(to bottom, rgba(247, 247, 247, 0), #f7f7f7);
+  pointer-events: none;
+  z-index: 10;
+}
+
+#previewArea {
+  flex: 1.1;
+  left: 0;
+  top: var(--spacing-xl);
+
+  align-items: center;
+  /* Center items in preview area */
+  gap: var(--spacing-lg);
+}
+
+
+#uploadButtonWrapper {
+  display: inline-block;
+  /* Allows transform and keeps it with the button's flow */
+  transform-origin: center;
+  /* Or 'left' or 'right' if you want it to scale from a side */
+  transition: transform 0.5s cubic-bezier(0.6, 0, 0.4, 1) 0.3s,
+    opacity 0.3s linear 0.3s;
+
+  /* Initial state (visible) */
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+/* Class to trigger the animation out for the wrapper */
+#uploadButtonWrapper.animate-out {
+  transform: scaleY(0);
+  transform: translateY(-30px);
+  opacity: 0;
+  pointer-events: none;
+  /* Prevent interaction after faded out */
+}
+
+
+/* --- Upload Wrapper --- */
+#uploadWrapper {
+  display: flex;
+  gap: var(--spacing-lg);
+  flex-direction: column-reverse;
+  margin: auto;
+  justify-content: center;
+  align-items: center;
+
+  opacity: 1;
+  transition:
+    transform 450ms cubic-bezier(0.8, 0, 0.9, 0.9),
+    opacity 280ms linear;
+  text-align: center;
+  /* Center the label/button */
+}
+
+.drag-drop-overlay {
+
+  width: 18rem;
+  height: 18rem;
+  /*
+        border: 2px dashed var(--color-border);
+        border-radius: 3rem;
+        background: rgba(255, 255, 255, 0.9);
+
+        margin: auto;
+        */
+
+  /* align-items: center; (Removed for flex child control) */
+  /* justify-content: center; (Removed for flex child control) */
+
+  cursor: pointer;
+  z-index: 99;
+  transition: all var(--transition-speed);
+  /*
+     background-image: url('dropfile.png');
+     background-repeat: no-repeat;
+     background-position: center center;
+     background-size: contain;
+*/
+  /* --- Added for Lottie positioning --- */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  /* Pushes content (Lottie animation) to the bottom */
+  align-items: center;
+  /* Centers content (Lottie animation) horizontally */
+  padding-bottom: 0;
+  /* Adds some space from the very bottom edge */
+  box-sizing: border-box;
+  /* Ensures padding is included within the height */
+  /* --- End Add --- */
+}
+
+#dragDropLottie {
+  margin-bottom: -10px;
+  pointer-events: none;
+  width: 120%;
+  /* Adjust width as needed */
+  /* Adjust height as needed */
+  /* Add margin-bottom if padding on parent is not sufficient or for more control */
+  /* margin-bottom: 10px; */
+}
+
+/* Style for the realistic chat bubble */
+.chat-bubble {
+  position: absolute;
+  top: 10px;
+  /* Keep original positioning */
+  left: 10px;
+  /* Keep original positioning */
+  background-color: #F1EDD3;
+  color: #313D36;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 999px;
+  /* Rounded corners for the main bubble */
+
+  z-index: 1;
+  /* To ensure the main bubble's border can visually sit correctly over the tail's connection */
+}
+
+/* Tail for the chat bubble */
+.chat-bubble::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  /* Size of the square that forms the tail */
+  height: 16px;
+  background-color: #F1EDD3;
+  /* Tail fill color, same as bubble */
+
+
+
+  /* Rotate the square by 45 degrees to make it diamond-shaped */
+  transform: rotate(45deg);
+
+  /* Positioning the tail to appear from the bottom-right area of the bubble */
+  /* 'bottom' positions the ::after relative to the .chat-bubble's bottom edge.
+     A negative value pushes it "outwards". Adjust these for precise alignment.
+     -8px is half the width/height of the square (16px/2).
+     The additional -2px accounts for half the border thickness to align border edges.
+     So, -10px should place the center of the rotated square's "connecting edge" roughly at the bubble's border.
+  */
+  bottom: -8px;
+  left: 40px;
+  /* How far from the right edge of the bubble the tail is anchored */
+
+  /* Rounding the tip:
+     This rounds the bottom-right corner of the *unrotated* square.
+     When rotated 45 degrees, this corner becomes the protruding tip of the tail.
+  */
+  border-bottom-right-radius: 3px;
+  /* Adjust for desired roundness of the tip */
+
+  /* z-index:
+     Place the tail slightly behind the main bubble's content plane.
+     The main bubble's border will then visually overlap the "transparent" bordered edges
+     of the tail, creating a more continuous look.
+  */
+  z-index: 0;
+}
+
+/* Style for the random text container */
+
+/*
+  .drag-drop-overlay.dragover {
+      border-color: var(--color-primary);
+      background-color: rgba(76, 175, 80, 0.1);
+      transform: scale(1.05);
+    }
+*/
+@keyframes slideUpFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#uploadLabel {
+  animation: slideUpFadeIn 1350ms cubic-bezier(0.1, 0.1, 0.1, 1) forwards;
+}
+
+.drag-drop-overlay {
+  animation: slideDownFadeIn 950ms cubic-bezier(0.1, 0.1, 0.1, 1) forwards;
+}
+
+
+
+
+/* Style the label like a button */
+#uploadLabel {
+  display: inline-block;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: #2A9484;
+  color: var(--color-text-on-primary);
+  border: none;
+  border-radius: var(--border-radius-pill);
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed);
+  box-shadow: var(--shadow-sm);
+}
+
+#uploadLabel:hover {
+  background-color: #1B7769;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Hide the actual file input */
+#fileInput {
+  display: none;
+}
+
+/* --- Main Content Visibility --- */
+#mainContent {
+  display: none;
+  /* Initially hidden */
+  width: 100%;
+  flex-direction: row;
+  /* Re-apply flex row for main layout */
+
+  transform: scale(0.6);
+  opacity: 0;
+  transition:
+    transform 450ms cubic-bezier(0.1, 0.1, 0.2, 1),
+    opacity 450ms cubic-bezier(0.1, 0.1, 0.2, 1);
+  margin-top: 80px;
+}
+
+/* --- Buttons --- */
+.btn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: none;
+  border-radius: var(--border-radius-pill);
+  /* Pill shape */
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed), opacity var(--transition-speed);
+  /* Added opacity transition */
+  display: inline-flex;
+  /* Align icon and text if needed */
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  text-decoration: none;
+  /* Remove underline from potential <a> tags */
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  /* For loading spinner */
+  overflow: hidden;
+  /* Hide spinner overflow */
+}
+
+.btn:hover:not(:disabled) {
+  /* Added :not(:disabled) */
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn:active:not(:disabled) {
+  /* Added :not(:disabled) */
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn:disabled,
+.btn--loading {
+  background-color: var(--color-disabled-bg);
+  color: var(--color-disabled);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+  opacity: 0.5;
+  /* Consistent disabled opacity */
+}
+
+/* Specific Button Colors */
+.btn--primary {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.btn--primary:hover:not(:disabled):not(.btn--loading) {
+  background-color: var(--color-primary-dark);
+}
+
+.btn--secondary {
+  background-color: var(--color-secondary);
+  color: var(--color-text-on-secondary);
+}
+
+.btn--secondary:hover:not(:disabled):not(.btn--loading) {
+  background-color: var(--color-secondary-dark);
+}
+
+.btn--accent {
+  background-color: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+
+.btn--accent:hover:not(:disabled):not(.btn--loading) {
+  background-color: var(--color-accent-dark);
+}
+
+.btn--danger {
+  background-color: #e57373;
+  /* Pastel red */
+  color: white;
+}
+
+.btn--danger:hover:not(:disabled) {
+  background-color: #ef5350;
+  /* Darker red on hover */
+}
+
+/* --- Delete Animation Button Specific Styles --- */
+.delete-animation-btn {
+  background-color: #e57373;
+  /* Darker, desaturated red */
+  color: white;
+  font-size: 0.8rem;
+  box-shadow: var(--shadow-md);
+  width: 36px;
+  /* Initial width for icon only */
+  height: 36px;
+  padding: 6px 6px 6px 6px;
+  /* Initial padding with more on the left */
+  justify-content: center;
+  /* Center the icon */
+  gap: 4px;
+  /* Initial gap when collapsed */
+  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1), padding-left 0.2s cubic-bezier(0.4, 0, 0.2, 1), gap 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease;
+}
+
+.delete-animation-btn:hover {
+  width: 150px;
+  /* Expanded width to show text */
+  /* background-color: #ef5350; */
+  /* Color change on hover removed */
+  padding-left: 3px;
+  /* Padding on hover */
+  gap: 8px;
+  /* Expanded gap */
+}
+
+.delete-animation-btn img {
+  transition: margin-right 0.3s ease-in-out;
+  margin-left: 2px;
+  /* Optically center the icon */
+}
+
+.delete-animation-btn .btn-text {
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: max-width 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s ease-in-out;
+}
+
+.delete-animation-btn:hover .btn-text {
+  max-width: 100px;
+  /* A value larger than the text's actual width */
+  opacity: 1;
+}
+
+/* Icon Buttons (Download, Trim, Crop) */
+.btn--icon {
+  width: 2.5rem;
+  /* Fixed size */
+  height: 2.5rem;
+  padding: 0;
+  /* Remove padding */
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 1.25rem 1.25rem;
+  /* Adjust icon size */
+  text-indent: -9999px;
+  /* Hide text */
+}
+
+#downloadDotLottieBtn {
+  background-color: var(--color-secondary);
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>');
+}
+
+#downloadJsonBtn {
+  background-color: var(--color-secondary);
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>');
+}
+
+#downloadJsonBtn:hover:not(:disabled) {
+  background-color: var(--color-secondary-dark);
+}
+
+
+#openStateMachineBuilderBtn {
+  background-color: #f0f0f0;
+}
+
+#openStateMachineBuilderBtn:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+#downloadGifBtn {
+  background-color: var(--color-accent);
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>');
+  /* White icon */
+}
+
+#downloadVideoBtn {
+  background-color: var(--color-accent);
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>');
+  /* White icon */
+}
+
+#downloadVideoBtn:hover:not(:disabled) {
+  background-color: var(--color-accent-dark);
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>');
+  /* Dark icon */
+
+}
+
+#downloadGifBtn:hover:not(:disabled):not(.btn--loading) {
+  background-color: var(--color-accent-dark);
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>');
+  /* Dark icon */
+
+}
+
+#openOverlayBtn {
+  background-color: #f0f0f0;
+  /* Neutral grey */
+  background-image: url('trim.svg');
+  /* Trim icon */
+}
+
+#openOverlayBtn:not(:disabled) {
+  opacity: 1;
+}
+
+#openOverlayBtn:hover:not(:disabled) {
+  background-color: #e0e0e0;
+  box-shadow: none;
+}
+
+/* --- NEW CROP BUTTON STYLE --- */
+#openCropBtn {
+  background-color: #f0f0f0;
+  /* Neutral grey */
+  /* Placeholder Crop Icon - Replace with your actual SVG */
+  background-image: url('crop.svg');
+}
+
+#openCropBtn:not(:disabled) {
+  opacity: 1;
+}
+
+#openCropBtn:hover:not(:disabled) {
+  background-color: #e0e0e0;
+  box-shadow: none;
+}
+
+/* --- END NEW CROP BUTTON STYLE --- */
+
+
+/* --- Loading Spinner (integrated) --- */
+.loading-spinner {
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  /* Light border */
+  border-top: 3px solid var(--color-text-on-primary);
+  /* Primary spinner color */
+  border-radius: 50%;
+  width: 1.2rem;
+  height: 1.2rem;
+  animation: spin 0.8s linear infinite;
+  position: absolute;
+  /* Position inside button */
+  top: 50%;
+  left: 50%;
+  margin-top: -0.6rem;
+  /* Center vertically */
+  margin-left: -0.6rem;
+  /* Center horizontally */
+  display: none;
+  /* Hidden by default */
+}
+
+.btn--loading .loading-spinner {
+  display: block;
+}
+
+/* Adjust spinner color for accent button */
+.btn--accent.btn--loading .loading-spinner {
+  border-top-color: var(--color-text-on-accent);
+}
+
+/* Hide button icon when loading */
+.btn--loading {
+  background-image: none !important;
+  /* Hide icon */
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- Inputs & Selects --- */
+input[type="text"],
+input[type="number"],
+select {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-pill);
+  background-color: var(--color-surface);
+  transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+  width: auto;
+  /* Allow shrinking */
+  min-width: 60px;
+  /* Minimum width */
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0);
+  /* Focus ring */
+}
+
+/* Color Inputs */
+input[type="color"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 28px;
+  /* Slightly larger */
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  /* Circular */
+  cursor: pointer;
+  vertical-align: middle;
+  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+  box-shadow: var(--shadow-sm);
+}
+
+input[type="color"]:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-md);
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border-radius: 50%;
+}
+
+input[type="color"]::-webkit-color-swatch {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  /* Subtle border */
+  border-radius: 50%;
+}
+
+input[type="color"]::-moz-color-swatch {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+}
+
+/* Input Groups (Color + Hex) */
+.color-input-group {
+  display: inline-flex;
+  /* Use inline-flex */
+  align-items: center;
+  gap: var(--spacing-sm);
+  background-color: #f0f0f0;
+  /* Keep light grey bg */
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-pill);
+}
+
+.color-input-group input[type="text"] {
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 0.9rem;
+  padding: var(--spacing-xs) 0;
+  /* Minimal padding */
+  width: 70px;
+  /* Fixed width for hex */
+  border-radius: 0;
+  /* Remove radius */
+  box-shadow: none;
+  font-family: var(--font-family-base);
+}
+
+.color-input-group input[type="text"]:focus {
+  box-shadow: none;
+  /* No focus ring inside group */
+}
+
+.color-input-group input[type="color"] {
+  width: 20px;
+  /* Smaller inside group */
+  height: 20px;
+  box-shadow: none;
+}
+
+.color-input-group input[type="color"]:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Select Dropdown */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: var(--spacing-xl);
+  /* Space for arrow */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'><path fill='%23999' d='M0 0l5 6 5-6z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right var(--spacing-md) center;
+  background-size: 0.6rem 0.36rem;
+}
+
+/* --- Accordion Styles --- */
+
+#colorEditor,
+#stopEditor,
+#animatedColorEditor,
+#animatedGradientEditor,
+#textEditorContainer {
+  margin: 0 auto;
+  width: 85%;
+
+}
+
+.accordion,
+.gradient-accordion {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  /* Contain children */
+  /* Remove space between accordions */
+  margin-bottom: var(--spacing-sm);
+
+}
+
+
+
+.accordion-header,
+.gradient-header {
+  height: 60px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: #f9f9f9;
+  /* Slightly off-white header */
+  font-weight: 600;
+  /* Bolder */
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color var(--transition-speed);
+  position: relative;
+  /* For icon positioning */
+  border-bottom: 1px solid var(--color-border);
+  /* Separator line */
+
+
+}
+
+.accordion-header:hover,
+.gradient-header:hover {
+  background-color: #f0f0f0;
+}
+
+.accordion-header.active {
+  border-bottom-color: transparent;
+  /* Remove border when open */
+}
+
+/* Accordion Icon */
+.accordion-header::after,
+.gradient-header::after {
+  content: '';
+  /* Required, but empty */
+  display: inline-block;
+  /* Needed for width/height */
+  width: 1em;
+  /* Adjust size as needed */
+  height: 1em;
+  /* Adjust size as needed */
+  opacity: 0.6;
+  /* Placeholder Down Chevron - Replace with your actual SVG */
+  background-image: url('down-chevron.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  /* Scale SVG to fit dimensions */
+  transition: transform 0.3s ease-in-out;
+  /* Keep your transition */
+  margin-left: 8px;
+  /* Adjust spacing if needed */
+  vertical-align: middle;
+  /* Align icon nicely with text */
+}
+
+.accordion-header.active::after,
+.gradient-header.active::after {
+  transform: rotate(180deg);
+  /* Rotate the SVG */
+}
+
+.accordion-header-content {
+  /* Wrapper for title and controls */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-grow: 1;
+  /* Take remaining space */
+  margin-right: var(--spacing-sm);
+  /* Space before icon */
+}
+
+.accordion-header-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.accordion-body,
+.gradient-content {
+  padding: var(--spacing-md);
+  display: none;
+  /* Hidden by default */
+  flex-direction: column;
+  gap: 0.2rem;
+  border-top: 1px solid var(--color-border);
+  /* Separator when open */
+}
+
+.accordion-body.active,
+.gradient-content.active {
+  display: flex;
+  /* Show when active */
+}
+
+.color-row,
+.stop-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm) 0;
+  /* Vertical padding */
+  gap: var(--spacing-md);
+}
+
+.stop-row .label {
+
+  flex-shrink: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+.stop-row .stop-controls {
+  /* Group controls on the right */
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.color-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgb(2 2 2 / 19%);
+  flex-shrink: 0;
+  /* Prevent shrinking */
+  margin-left: -5px;
+}
+
+.stop-row input[type="number"] {
+  /* Alpha input */
+  appearance: none;
+  /* Consider keeping this if you don't want default styling */
+  -moz-appearance: textfield;
+  /* Hides spinners in Firefox */
+  border: none;
+  border-radius: 999px;
+  padding: 8px 8px 8px 10px;
+  /* Increased right padding: top/right/bottom/left */
+  background-color: #f0f0f0;
+  transition: background-color 0.2s ease, border 0.2s ease;
+  min-width: 68px;
+  font-size: 16px;
+  text-align: left;
+  /* Align text to the left */
+}
+
+/* Hide spinners in WebKit browsers (Chrome, Safari) */
+.stop-row input[type="number"]::-webkit-outer-spin-button,
+.stop-row input[type="number"]::-webkit-inner-spin-button {
+  margin-left: 6px;
+  /* Optional: Adds space before spinner */
+}
+
+.gradient-preview {
+  height: 16px;
+  /* Taller */
+  width: 80px;
+  border-radius: var(--border-radius-pill);
+  border: 1px solid var(--color-border);
+  margin-left: var(--spacing-sm);
+  pointer-events: none;
+}
+
+/* --- Section Cards (Preview Area) --- */
+.section-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  /* More rounded */
+  width: 100%;
+  /* Full width within preview area */
+  max-width: 400px;
+  /* Max width for cards */
+  padding: var(--spacing-md) var(--spacing-lg);
+  box-shadow: var(--shadow-md);
+}
+
+#exportOptionsCard {
+  padding-bottom: 20px;
+}
+
+.section-card h3,
+.editor-heading {
+  font-size: 0.75rem;
+  /* Smaller heading */
+  font-weight: 700;
+  /* Bold */
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--color-text-secondary);
+  /* Grey heading */
+  margin-bottom: var(--spacing-md);
+  /* Space below heading */
+  display: block;
+  /* Ensure it takes full width */
+}
+
+.editor-heading {
+  margin: 0 auto;
+  width: 85%;
+  margin-top: 2.0rem;
+  margin-bottom: 1.6rem;
+}
+
+/* Headers within cards */
+.json-header,
+.gif-settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 24px;
+}
+
+.gif-settings-header {
+  margin-bottom: 20px;
+}
+
+/* Reset margin if h3 already has it */
+
+
+.json-header h3,
+.gif-settings-header h3 {
+  margin-bottom: 0;
+  /* Remove margin from h3 inside header */
+}
+
+.json-header-controls,
+.gif-header-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+/* GIF Settings Rows */
+.gif-settings {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0;
+  gap: var(--spacing-md);
+  min-height: 36px;
+}
+
+.gif-settings label {
+  font-weight: 500;
+  /* Medium weight */
+  font-size: 0.9rem;
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+  /* Prevent label shrinking */
+}
+
+.gif-settings .color-input-group-bg {
+  /* Specific styling for BG color group */
+  background-color: #f0f0f0;
+  padding: var(--spacing-xs);
+  padding-left: 8px;
+  border-radius: var(--border-radius-pill);
+  display: inline-flex;
+  /* Changed to inline-flex */
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.gif-settings .color-input-group-bg input[type="text"] {
+  width: 70px;
+  border: none;
+  background: transparent;
+  text-align: center;
+  padding: var(--spacing-xs) 0;
+  font-family: var(--font-family-base);
+  font-size: 14px;
+}
+
+.gif-settings .color-input-group-bg input[type="color"] {
+  width: 20px;
+  height: 20px;
+  box-shadow: none;
+}
+
+/* --- Toggle Switch --- */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  /* Slightly wider */
+  height: 24px;
+  vertical-align: middle;
+  /* Align with labels */
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: var(--transition-speed);
+  border-radius: var(--border-radius-pill);
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  /* Larger handle */
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: var(--transition-speed);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.switch input:checked+.slider {
+  background-color: var(--color-primary);
+}
+
+.switch input:checked+.slider:before {
+  transform: translateX(20px);
+  /* Adjusted translation */
+}
+
+.switch input:focus+.slider {
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.3);
+  /* Focus ring */
+}
+
+/* --- Speed Control Slider --- */
+.speed-control {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  width: 100%;
+  /* Full width within its container */
+  margin: var(--spacing-sm) 0;
+  /* Vertical margin */
+  background-color: white;
+
+  border-radius: var(--border-radius-lg);
+  /* More rounded */
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  /* Full width within preview area */
+  max-width: 400px;
+  /* Max width for cards */
+  padding: var(--spacing-md) var(--spacing-lg);
+
+}
+
+.slider-wrapper {
+  flex-grow: 1;
+  /* Take available space */
+  position: relative;
+}
+
+/* Range Input Base */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  /* Track height */
+  background: #ddd;
+  /* Track background */
+  border-radius: var(--border-radius-pill);
+  cursor: pointer;
+  outline: none;
+  margin: var(--spacing-sm) 0;
+  /* Add some vertical margin */
+}
+
+/* Thumb (WebKit) */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  /* Thumb size */
+  height: 20px;
+  background: var(--color-surface);
+  /* Thumb color */
+  border: 2px solid var(--color-primary);
+  /* Thumb border */
+  border-radius: 50%;
+  cursor: pointer;
+  margin-top: -15px;
+  /* Adjust vertical position */
+  box-shadow: var(--shadow-sm);
+  transition: background-color var(--transition-speed), transform var(--transition-speed);
+}
+
+input[type="range"]:hover::-webkit-slider-thumb {
+  background-color: var(--color-primary);
+}
+
+input[type="range"]:active::-webkit-slider-thumb {
+  transform: scale(1.1);
+}
+
+input[type="range"]:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.4);
+  /* Focus ring on thumb */
+}
+
+/* Thumb (Mozilla) */
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background-color var(--transition-speed), transform var(--transition-speed);
+}
+
+input[type="range"]:hover::-moz-range-thumb {
+  background-color: var(--color-primary);
+}
+
+input[type="range"]:active::-moz-range-thumb {
+  transform: scale(1.1);
+}
+
+input[type="range"]:focus::-moz-range-thumb {
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.4);
+}
+
+/* Speed Value Display */
+.speed-value {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--border-radius-pill);
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-width: 60px;
+  /* Ensure space */
+  text-align: center;
+  white-space: nowrap;
+  /* Prevent wrapping */
+  box-shadow: var(--shadow-sm);
+}
+
+/* --- Preview Window --- */
+.window-container {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 400px;
+  /* Max width for preview */
+  background: var(--color-surface);
+  border-radius: var(--border-radius-lg);
+  /* Match cards */
+  box-shadow: var(--shadow-md);
+  /* More prominent shadow */
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  opacity: 0;
+  z-index: 98;
+
+}
+
+.window-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f2f2f2;
+  /* Light grey header */
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.window-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* Handle long filenames */
+  margin-right: var(--spacing-sm);
+}
+
+.window-close {
+  width: 20px;
+  /* Larger close button */
+  height: 20px;
+  line-height: 18px;
+  /* Adjust line height */
+  text-align: center;
+  border: none;
+  border-radius: 50%;
+  background: #d2453e;
+  /* Mac red */
+  color: rgba(0, 0, 0, 0.6);
+  /* Darker symbol */
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 1px 0 0 1px;
+  transition: background-color var(--transition-speed);
+  flex-shrink: 0;
+  /* Prevent shrinking */
+}
+
+.window-close:hover {
+  background: #e0483e;
+}
+
+.window-body {
+  position: relative;
+  flex: 1;
+  /* Take remaining space */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Add some padding */
+
+
+  width: 100%;
+  /* Ensure it fills container width */
+  overflow: visible;
+  /* Lottie might overflow slightly */
+  transition: background-color var(--transition-speed);
+  /* Smooth color transition */
+}
+
+/* Checkerboard Background */
+.checkerboard {
+  background-image: linear-gradient(45deg, var(--color-checkerboard-light) 25%, var(--color-checkerboard-dark) 25%),
+    linear-gradient(-45deg, var(--color-checkerboard-light) 25%, var(--color-checkerboard-dark) 25%),
+    linear-gradient(45deg, var(--color-checkerboard-dark) 75%, var(--color-checkerboard-light) 75%),
+    linear-gradient(-45deg, var(--color-checkerboard-dark) 75%, var(--color-checkerboard-light) 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+}
+
+#lottiePreview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  /* Ensure Lottie fits */
+  display: block;
+  /* Remove extra space below */
+}
+
+svg {
+  display: block;
+}
+
+/* Style for the container holding the text and toggle */
+.preview-bg-toggle {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  z-index: 10;
+  display: flex;
+  /* Arrange text and switch horizontally */
+  align-items: center;
+  /* Vertically align items */
+  gap: 2px;
+  /* Space between text and switch */
+  background-color: rgba(255, 255, 255, 0.7);
+  /* Optional: slight white bg for contrast */
+  padding: var(--spacing-xs) 10px;
+  /* Optional: Padding */
+  padding-right: 6px;
+  border-radius: var(--border-radius-pill);
+  /* Optional: Rounded corners */
+  backdrop-filter: blur(2px);
+  /* Optional: Frosted glass effect */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  /* Optional: Subtle shadow */
+}
+
+/* Style for the text label */
+.preview-bg-label {
+  font-size: 0.75rem;
+  /* Small text */
+  font-weight: 600;
+  /* Medium bold */
+  color: var(--color-text-secondary);
+  /* Grey text */
+  white-space: nowrap;
+  /* Prevent wrapping */
+  cursor: default;
+  /* Indicate it's just text */
+}
+
+/* Ensure the switch label itself doesn't add extra spacing */
+.preview-bg-toggle .switch {
+  margin: 0;
+  /* Reset margin if any */
+  transform: scale(0.8);
+  /* Keep the smaller scale if you liked it */
+}
+
+/* Remove checkerboard when solid background is active */
+.window-body.solid-bg-active {
+  background-image: none;
+  /* Remove the checkerboard gradient */
+}
+
+
+
+
+/* --- Overlays --- */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  /* Darker overlay */
+  display: none;
+  /* Hidden by default */
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: var(--spacing-md);
+  /* Padding for smaller screens */
+
+}
+
+.overlay.active {
+  display: flex;
+  /* Show when active */
+}
+
+.overlay-content {
+  background: var(--color-surface);
+  width: 80%;
+  height: 80%;
+  max-height: 87vh;
+  margin-top: 74px;
+  /*padding: var(--spacing-lg);*/
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow-y: auto;
+  /* Allow scrolling if content overflows */
+  display: flex;
+  /* Added to allow iframe to fill height */
+  flex-direction: column;
+  /* Added */
+
+}
+
+.overlay-close {
+  font-family: Inter;
+  font-weight: 600;
+  border: 0px;
+  color: #ffffff;
+  position: absolute;
+  top: 4%;
+  left: calc(50% - 110px);
+  cursor: pointer;
+  /* width: 36px; */
+  height: 36px;
+  border-radius: 999px;
+  background-color: #06060696;
+  /* background-image: url(close.svg); */
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 55%;
+  padding: 0 17px 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, transform 650ms cubic-bezier(0.6, 0, 0.4, 1), opacity 500ms;
+  gap: 5px;
+  /* ADDED: Initial state for when overlay is closed (off-screen) */
+  transform: translateY(-190%);
+  opacity: 0;
+
+  gap: 5px;
+}
+
+.overlay-close img {
+  width: 18px;
+  height: auto;
+  margin-bottom: 1px;
+}
+
+.overlay.active .overlay-close {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+
+/* Keep these hover and focus rules (or modify if they conflict visually) */
+.overlay-close:hover {
+  background-color: #e545458f;
+  /* Darker red on hover */
+  transform: scale(1.06);
+  /* Slightly enlarge on hover */
+}
+
+.overlay-close:focus {
+  outline: none;
+  /* Remove default outline */
+  /* Keep focus ring */
+}
+
+#saveAndCloseBtn {
+  background-color: #1ac08978;
+  left: 50%;
+  padding: 0 20px 0 16px;
+}
+
+#saveAndCloseBtn:hover {
+  background-color: #119b6d;
+}
+
+
+.overlay h3 {
+  /* Style heading inside overlay */
+  margin-bottom: var(--spacing-lg);
+  font-size: 1.2rem;
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+  /* Prevent shrinking */
+}
+
+/* Settings Rows inside Overlay */
+.setting-row {
+  margin-bottom: var(--spacing-lg);
+  /* Increased spacing */
+  display: flex;
+  flex-direction: column;
+  /* Stack label and controls vertically */
+  align-items: flex-start;
+  /* Align items to start */
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
+  /* Prevent shrinking */
+}
+
+.setting-row label {
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--color-text-primary);
+}
+
+.setting-row .controls {
+  /* Wrapper for inputs */
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.setting-row input[type="text"] {
+  width: 100px;
+  /* Fixed width for hex in overlay */
+}
+
+/* Iframe in Overlay */
+#customContent {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  /* Add border */
+  border-radius: var(--border-radius-md);
+  flex-grow: 1;
+  /* Added to fill remaining space */
+}
+
+/* Hidden GIF Container */
+#gifContainer {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* --- Media Queries for Responsiveness --- */
+@media (max-width: 768px) {
+  body {
+    flex-direction: column;
+    padding: var(--spacing-lg);
+  }
+
+  /* *** NEW: Postcard Mode Mobile Hiding & Locking *** */
+  body.postcard-mode-active {
+    overflow: hidden !important;
+    /* Disables scrolling */
+  }
+
+  body.postcard-mode-active #top-bar {
+    display: none !important;
+  }
+
+  body.postcard-mode-active .overlay-close {
+    display: none !important;
+  }
+
+
+  #editorArea {
+    max-height: none;
+    /* Remove max-height */
+    order: 2;
+    /* Editor below preview */
+    padding-right: 0;
+    /* No padding needed */
+  }
+
+  #previewArea {
+    position: static;
+    /* Remove sticky */
+    order: 1;
+    /* Preview first */
+    width: 100%;
+    flex: none;
+    /* Reset flex property */
+  }
+
+  .window-container,
+  .section-card {
+    max-width: none;
+    /* Allow cards/preview to fill width */
+  }
+
+  .speed-control {
+    flex-direction: column;
+    /* Stack slider and value */
+    align-items: stretch;
+    /* Stretch items */
+  }
+
+  .speed-value {
+    margin-top: var(--spacing-sm);
+    text-align: center;
+  }
+
+  .overlay-content {}
+}
+
+/* --- Accessibility Helper --- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.gif-settings .color-input-group-bg {
+  transition: opacity 0s ease, visibility 0s ease;
+  opacity: 1;
+  visibility: visible;
+}
+
+.gif-settings .color-input-group-bg.hidden {
+  opacity: 0;
+  visibility: hidden;
+  position: absolute;
+  /* Remove from layout flow */
+  pointer-events: none;
+  /* Make it non-interactive when hidden */
+}
+
+/* Add wrapper to maintain consistent height */
+.gif-settings>div {
+  position: relative;
+  min-height: 22px;
+  /* Match your control height */
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+
+/* --- Overlays --- */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  /* Backdrop color */
+  display: flex;
+  /* Keep flex for centering */
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: var(--spacing-md);
+
+  /* --- BACKDROP ANIMATION (Fade only) --- */
+  opacity: 0;
+  pointer-events: none;
+  /* Prevent interaction when hidden */
+  /* Define backdrop closing transition */
+  transition:
+    /* Delay the backdrop fade-out until the content slide (350ms) is done */
+    opacity 300ms linear 350ms,
+    /* MODIFIED LINE */
+    /* Delay pointer-events until near the end of the backdrop fade */
+    pointer-events 0s linear 600ms;
+  /* MODIFIED LINE */
+}
+
+.overlay.active {
+  /* --- BACKDROP ANIMATION (Fade only) --- */
+  opacity: 1;
+  pointer-events: auto;
+  /* Allow interaction when visible */
+  /* Define backdrop opening transition */
+  transition: opacity 200ms linear;
+  /* Faster fade in for backdrop */
+}
+
+.overlay-content {
+  background: var(--color-surface);
+  max-width: 1024px;
+  width: 100%;
+  height: 90%;
+  max-height: 87vh;
+  margin-top: 74px;
+  /*padding: var(--spacing-lg);*/
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+
+  /* --- CONTENT ANIMATION (Slide + Fade) --- */
+  opacity: 0;
+  /* Start positioned lower down */
+  transform: translateY(60px);
+  /* Define content closing transition */
+  transition: transform 350ms cubic-bezier(0.9, 0, 0.9, 0.9),
+    /* Slide down */
+    opacity 300ms linear;
+  /* Fade out */
+}
+
+.overlay.active .overlay-content {
+  /* --- CONTENT ANIMATION (Slide + Fade) --- */
+  opacity: 1;
+  /* End state: original position */
+  transform: translateY(0);
+  /* Define content opening transition */
+  /* Add a small delay (e.g., 50ms) so backdrop starts fading first */
+  transition: transform 550ms cubic-bezier(0.1, 0.1, 0.1, 1) 50ms,
+    /* Slide up */
+    opacity 400ms linear 100ms;
+  /* Fade in (slightly longer delay) */
+}
+
+/* --- Confirmation Dialog --- */
+.confirm-dialog-panel {
+  background-color: var(--color-surface);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  transform: scale(0.95);
+  opacity: 0;
+  transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+}
+
+.overlay.active .confirm-dialog-panel {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.confirm-dialog-panel h3 {
+  margin-top: 0;
+  margin-bottom: var(--spacing-md);
+  font-size: 1.2rem;
+  color: var(--color-text-primary);
+}
+
+.confirm-dialog-panel p {
+  margin-bottom: var(--spacing-xs);
+  color: var(--color-text-secondary);
+}
+
+.confirm-dialog-warning {
+  font-size: 0.8rem;
+  color: #e57373;
+  /* Pastel red */
+  margin-top: var(--spacing-md);
+}
+
+.confirm-dialog-buttons {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+}
+
+/* (Keep your other overlay styles like .overlay-close, .overlay h3 etc.) */
+.window-title[contenteditable="true"] {
+  cursor: text;
+  min-width: 50px;
+  /* Prevent it becoming too small */
+  display: inline-block;
+  /* Needed for min-width */
+  padding: 2px 4px;
+  /* Add some internal spacing */
+  margin: -2px -4px;
+  /* Compensate for padding */
+  border-radius: 3px;
+}
+
+.window-title[contenteditable="true"]:focus {
+  outline: 1px solid var(--color-primary);
+  /* Highlight border on focus */
+  background-color: #f0f0f0;
+  /* Slight background change on focus */
+  transition: outline 0s linear 150ms, background-color 0s linear 50ms;
+  /* Delay focus styling to prevent flash on quick focus/blur */
+}
+
+/* --- Editable Label Truncation & Sizing for Gradients/Animated Colors --- */
+.gradient-header .title-wrapper span[contenteditable="true"] {
+  /* font-size is inherited, making it the same as the accordion header text */
+  font-weight: 600;
+  /* Match accordion header font-weight */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+  display: inline;
+  vertical-align: middle;
+}
+
+/* --- Editable Label Truncation & Sizing for Solid Color Instances --- */
+.color-row .title-wrapper span[contenteditable="true"] {
+  font-size: 0.85rem;
+  /* Slightly smaller font size */
+  font-weight: 500;
+  white-space: nowrap;
+  /* Prevent wrapping */
+  overflow: hidden;
+  /* Hide overflow */
+  text-overflow: ellipsis;
+  /* Add '...' for overflow */
+  max-width: 200px;
+  /* Max width before truncating */
+  display: inline;
+  vertical-align: middle;
+  /* Align nicely with other elements like pills */
+  min-width: 100px;
+}
+
+/* --- Editable Label Focus Style --- */
+.color-row .title-wrapper span[contenteditable="true"]:focus,
+.gradient-header .title-wrapper span[contenteditable="true"]:focus {
+  outline: none;
+  /* Remove the default browser outline */
+  box-shadow: 0 0 0 2px rgba(150, 150, 150, 0.4);
+  /* Use box-shadow for a rounded "border" */
+  background-color: #f8f8f8;
+  /* Slight background highlight on focus */
+  border-radius: 4px;
+  /* Apply rounded corners */
+  padding: 1px 3px;
+  /* Add a little space so the shadow doesn't touch the text */
+  margin: -1px -3px;
+  /* Compensate for padding to prevent layout shift */
+  transition: box-shadow 0s linear 100ms, background-color 0s linear 150ms;
+  /* Delay focus styling to prevent flash on quick focus/blur */
+
+  /* --- REQ: Limit width during editing --- */
+  white-space: normal;
+  /* Allow text to wrap when editing */
+  overflow: visible;
+  /* Ensure wrapped text is visible */
+  max-width: 250px;
+  /* Set a max-width for the editing field */
+}
+
+
+/* Add these styles to your CSS */
+#emptyStateDiv {
+  display: none;
+  /* Hidden by default */
+  height: 100%;
+  /* Set the desired height */
+  max-height: 900px;
+  width: 100%;
+  display: flex;
+  /* Use flexbox for centering */
+  justify-content: center;
+  /* Center horizontally */
+  align-items: center;
+  /* Center vertically */
+  text-align: center;
+  padding: var(--spacing-lg);
+  /* Optional visual styling */
+  pointer-events: none;
+  border-radius: var(--border-radius-md);
+  margin-top: -22%;
+  box-sizing: border-box;
+  /* Include padding/border in height */
+}
+
+#emptyStateDiv img {
+  max-width: 68%;
+  /* Prevent image from becoming too large */
+  max-height: 68%;
+  object-fit: contain;
+  /* Ensure image scales nicely */
+  opacity: 0.7;
+  /* Optional: make it slightly faded */
+}
+
+/* Optional: Hide the main heading when the empty state is shown */
+#editorArea.is-empty #colorInstancesLabel {
+  display: none;
+}
+
+#midsection {
+  height: 100%;
+  flex: 0;
+
+}
+
+
+.text-accordion .gradient-header {
+  /* Or your specific header class */
+  /* Potentially adjust padding or item alignment if text input makes it crowded */
+}
+
+.text-editor-input {
+  border: 1px solid var(--color-border);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-pill);
+  font-size: 0.9rem;
+  /* Add any other specific styles */
+}
+
+.text-instance-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  /* Or your preferred gap */
+  padding: var(--spacing-sm) 0;
+  /* Vertical padding, no horizontal */
+
+}
+
+.text-instance-row:last-child {
+  border-bottom: none;
+  /* Remove border from last item */
+}
+
+.text-instance-row .label {
+
+  flex-shrink: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.text-instance-row .text-editor-input {
+  flex-grow: 1;
+  /* Add any other specific styles from your previous .text-editor-input */
+  border: 1px solid var(--color-border);
+  padding: 0.44rem var(--spacing-sm);
+  border-radius: var(--border-radius-pill);
+  font-size: 0.9rem;
+}
+
+.right-side-of-header {
+  max-width: 150px;
+  display: flex;
+  align-items: right;
+
+}
+
+
+/* --- Layer Name Pill Label --- */
+.layer-name-pill {
+  /* --- REQ: Icon-only pill button --- */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  /* Fixed width */
+  height: 24px;
+  /* Fixed height */
+  border-radius: 50%;
+  /* Make it circular */
+  background-color: #f0f0f000;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color var(--transition-speed), border-color var(--transition-speed), opacity var(--transition-speed);
+  flex-shrink: 0;
+  /* Prevent from shrinking */
+}
+
+.layer-name-pill img {
+  width: 14px;
+  /* Adjust icon size */
+  height: 14px;
+  fill: currentColor;
+  flex-shrink: 0;
+  opacity: 0.4;
+}
+
+.title-wrapper {
+  display: flex;
+  width: auto;
+  /* Let it be flexible */
+
+  gap: 0.4rem;
+  align-items: center;
+}
+
+/* --- Editable Layer Name Component --- */
+.editable-layer-name {
+  display: inline-flex;
+  align-items: center;
+  min-width: 50px;
+  flex-shrink: 1;
+}
+
+.editable-layer-name-display {
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+  padding: 2px 6px;
+  margin: -2px -6px;
+  border-radius: var(--border-radius-pill);
+  transition: background-color 0.15s ease;
+}
+
+.editable-layer-name-display:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.editable-layer-name-input {
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 1px 8px;
+  height: 22px;
+  line-height: 1;
+  min-width: 120px;
+  max-width: 200px;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--border-radius-pill);
+  background-color: #fff;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb, 66, 133, 244), 0.2);
+}
+
+.editable-layer-name-input:focus {
+  border-color: var(--color-primary);
+}
+
+.layer-name-pill {
+  transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+
+/* when hd=true (i.e. “toggled on”/hidden), make it soft-red */
+.layer-name-pill.hidden {
+  background-color: #ffe6e6;
+  border-color: #ffc2c2;
+}
+
+/* optional: slightly dim when off */
+.layer-name-pill.hidden img {
+  opacity: 0.3;
+}
+
+.layer-name-pill:hover {
+  background-color: #e0e0e0;
+}
+
+.layer-name-pill.hidden:hover {
+  background-color: #ffdad4;
+}
+
+#openAssetReplacerBtn {
+  background-color: #f0f0f0;
+  /* Neutral grey or another color */
+  /* Replace with your actual SVG icon for assets */
+  background-image: url('assetreplace.svg');
+}
+
+#openAssetReplacerBtn:not(:disabled) {
+  opacity: 1;
+}
+
+#openAssetReplacerBtn:hover:not(:disabled) {
+  background-color: #e0e0e0;
+  box-shadow: none;
+}
+
+#headerLottie {
+  cursor: pointer;
+  width: 150px;
+  height: 50px;
+}
+
+
+.coffeeRoast-hidden,
+.coffeeRoast-visible {
+  /* Consolidate common styles */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.0);
+  /* Start transparent */
+  backdrop-filter: blur(0px);
+  /* Start with no blur */
+  -webkit-backdrop-filter: blur(0px);
+  z-index: 1000;
+  display: flex;
+  /* Keep flex for centering */
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  /* Start fully transparent */
+  visibility: hidden;
+  /* Start hidden */
+  transition: background-color var(--overlay-fade-duration) ease-in-out,
+    backdrop-filter var(--overlay-fade-duration) ease-in-out,
+    -webkit-backdrop-filter var(--overlay-fade-duration) ease-in-out,
+    opacity var(--overlay-fade-duration) ease-in-out,
+    visibility 0s linear var(--overlay-fade-duration);
+  /* Hide after fade out */
+}
+
+
+.coffeeRoast-visible {
+  background-color: rgba(0, 0, 0, 0.65);
+  /* Target background */
+  backdrop-filter: blur(8px);
+  /* Target blur */
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 1;
+  /* Target opacity */
+  visibility: visible;
+  /* Make visible */
+  transition-delay: 0s;
+  /* Ensure visibility transition doesn't delay fade-in */
+  transition: background-color var(--overlay-fade-duration) ease-in-out,
+    backdrop-filter var(--overlay-fade-duration) ease-in-out,
+    -webkit-backdrop-filter var(--overlay-fade-duration) ease-in-out,
+    opacity var(--overlay-fade-duration) ease-in-out,
+    visibility 0s linear 0s;
+  /* Show immediately for fade in */
+}
+
+#baristaViewContainer {
+  background: none;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  position: relative;
+  width: 80%;
+  max-width: 600px;
+  height: 70%;
+  max-height: 500px;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  /* Initially hidden */
+  transform: scale(0.95);
+  /* Optional: slight scale effect */
+  transition: opacity var(--content-fade-duration) ease-in-out var(--content-fade-delay),
+    transform var(--content-fade-duration) ease-in-out var(--content-fade-delay);
+}
+
+.coffeeRoast-visible #baristaViewContainer {
+  opacity: 1;
+  transform: scale(1);
+}
+
+#freshBrewFrame {
+  width: 400px;
+  height: 600px;
+  border: none;
+}
+
+#closeEspressoShotBtn {
+  margin-top: 10px;
+  padding: 8px 15px;
+  cursor: pointer;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  align-self: flex-end;
+}
+
+
+
+
+
+#top-bar {
+  max-width: 1200px;
+  position: absolute;
+  display: flex;
+  left: 50%;
+  top: 0;
+  width: 100%;
+  height: 80px;
+  transform: translateX(-50%);
+
+}
+
+.page-logo {
+
+
+
+  max-width: 700px;
+  /* cap its size */
+  height: 36px;
+  z-index: 100;
+  margin-top: 3px;
+  margin-left: 4px;
+  /* sit above everything else */
+}
+
+.visibility-toggle {
+  height: 18px;
+  display: flex;
+}
+
+.textVisibility {
+  margin: auto;
+  height: 16px;
+  width: 16px;
+  margin-top: 2px;
+  opacity: 0.6;
+}
+
+
+.lottie-player-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: rgba(255, 255, 255, 1);
+  /* Semi-transparent white */
+  backdrop-filter: blur(5px);
+  /* Frosted glass effect */
+  border-top: 1px solid var(--color-border);
+  width: 100%;
+  position: relative;
+  /* For speed slider pop-up */
+}
+
+.control-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-primary);
+  transition: color var(--transition-speed);
+}
+
+.control-button:hover {
+  color: var(--color-primary);
+}
+
+.control-button svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+#lottieSeekbar {
+  flex-grow: 1;
+  height: 8px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--color-border);
+  border-radius: var(--border-radius-pill);
+  cursor: pointer;
+  outline: none;
+}
+
+#lottieSeekbar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  margin-top: 0px;
+  /* Adjust to center on track */
+}
+
+#lottieSeekbar::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.speed-control-pill {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-pill);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
+
+}
+
+.speed-control-pill:hover {
+  background-color: #f0f0f0;
+
+}
+
+.speed-control-pill svg {
+  width: 16px;
+  height: 16px;
+  fill: var(--color-text-secondary);
+}
+
+#speedValuePill {
+  color: var(--color-text-primary);
+}
+
+.speed-slider-popup {
+  position: absolute;
+  bottom: calc(100% + var(--spacing-sm));
+  /* Position above the control bar */
+  right: var(--spacing-md);
+  /* Align with the speed pill or adjust as needed */
+  background-color: var(--color-surface);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 10;
+  display: none;
+  /* Hidden by default */
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 250px;
+  /* Adjust width as needed */
+}
+
+.speed-slider-popup.active {
+  display: flex;
+  flex-direction: row;
+}
+
+.speed-slider-popup input[type="range"] {
+  /* Re-style existing speed slider for popup */
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  background: #ddd;
+  border-radius: var(--border-radius-pill);
+  cursor: pointer;
+  outline: none;
+  margin: 0;
+  /* Remove default margins */
+}
+
+.speed-slider-popup input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  margin-top: -14px;
+  /* Adjust vertical position */
+  box-shadow: var(--shadow-sm);
+  transition: background-color var(--transition-speed), transform var(--transition-speed);
+}
+
+.speed-slider-popup input[type="range"]:hover::-webkit-slider-thumb {
+  background-color: var(--color-primary);
+}
+
+.speed-slider-popup input[type="range"]:active::-webkit-slider-thumb {
+  transform: scale(1.1);
+}
+
+.speed-slider-popup input[type="range"]:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.4);
+}
+
+.speed-slider-popup input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background-color var(--transition-speed), transform var(--transition-speed);
+}
+
+.speed-slider-popup input[type="range"]:hover::-moz-range-thumb {
+  background-color: var(--color-primary);
+}
+
+.speed-slider-popup input[type="range"]:active::-moz-range-thumb {
+  transform: scale(1.1);
+}
+
+.speed-slider-popup input[type="range"]:focus::-moz-range-thumb {
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.4);
+}
+
+.dismiss-speed-popup {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  align-self: flex-end;
+  /* Position to the right */
+}
+
+.dismiss-speed-popup svg {
+  width: 16px;
+  height: 16px;
+  fill: var(--color-text-secondary);
+}
+
+.dismiss-speed-popup:hover svg {
+  fill: var(--color-text-primary);
+}
+
+/* --- END NEW VIDEO PLAYER CONTROLS --- */
+
+
+/* Add some basic styling for the new elements if needed */
+.preview-controls-top-left {
+  /* Adjust positioning as needed */
+}
+
+#filterInfoPill {
+  /* Styles are mostly inline for now, can be moved to CSS */
+  box-shadow: var(--shadow-sm);
+  border: 2px solid rgb(255, 174, 170);
+  cursor: pointer;
+}
+
+#filterInfoPill:hover {
+
+  border: 2px solid #F7837D;
+
+}
+
+/* Class to hide elements during filtering */
+.hidden-by-filter {
+  display: none !important;
+}
+
+.accordion.hidden-by-filter,
+.gradient-accordion.hidden-by-filter {
+  display: none !important;
+}
+
+/* For accordions that were part of the initial filter but don't currently match */
+.accordion-filtered-nomatch .accordion-header,
+.accordion-filtered-nomatch .gradient-header {
+  opacity: 1;
+  /* background-color: #f8f8f8; */
+  /* Optional: subtle background change for the header */
+}
+
+/* Hide the actual content rows within an accordion that's visible but doesn't currently match the filter */
+
+
+/* Style for individual rows if you decide to show them but mark as non-matching (alternative to hiding) */
+/*
+   .row-filtered-nomatch {
+       opacity: 0.5;
+       pointer-events: none;
+   }
+   */
+
+.info-pill {
+  position: absolute;
+  bottom: var(--spacing-sm);
+  /* Adjust if it overlaps with seekbar controls */
+  left: var(--spacing-sm);
+  z-index: 10;
+  background-color: rgba(255, 255, 255, 0.75);
+  /* Slightly more opaque for readability */
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-pill);
+  backdrop-filter: blur(3px);
+  box-shadow: var(--shadow-sm);
+  font-size: 0.7rem;
+  /* Slightly smaller */
+  font-weight: 600;
+  color: #292929;
+  white-space: nowrap;
+  pointer-events: none;
+  /* So it doesn't interfere with controls underneath */
+}
+
+/* Adjust positioning relative to the new player controls */
+.lottie-player-controls+#animationDurationPill {
+  bottom: calc(var(--spacing-sm) + 60px);
+  /* Example: 40px is roughly height of player-controls */
+  /* Or adjust 'bottom' directly in .info-pill if player controls height is consistent */
+}
+
+/* --- Hide preview overlays by default --- */
+.preview-controls-top-left,
+.preview-bg-toggle,
+#deleteAnimationBtn,
+#animationDurationPill {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out 500ms;
+  /* Add 500ms delay before hiding */
+}
+
+/* --- Show preview overlays on container hover --- */
+.window-container:hover .preview-controls-top-left,
+.window-container:hover .preview-bg-toggle,
+.window-container:hover #deleteAnimationBtn,
+.window-container:hover #animationDurationPill {
+  opacity: 1;
+  pointer-events: auto;
+  transition-delay: 0s;
+  /* Remove delay when showing */
+}
+
+
+
+.lottie-file-chip {
+  display: inline-flex;
+  /* Use flexbox for alignment */
+  align-items: center;
+  /* Vertically center content */
+  padding: var(--spacing-xs) var(--spacing-md);
+  padding-right: 8px;
+  background-color: #e0e0e0;
+  color: var(--color-text-secondary);
+  border-radius: var(--border-radius-pill);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.5;
+  /* Ensure consistent line height */
+  transition: background-color var(--transition-speed), color var(--transition-speed), box-shadow var(--transition-speed);
+  border: 1px solid transparent;
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+  max-width: 150px;
+  /* Adjust as needed */
+  height: 2rem;
+}
+
+.lottie-file-chip:hover {
+  background-color: #d0d0d0;
+  box-shadow: var(--shadow-sm);
+}
+
+.lottie-file-chip.selected {
+  background-color: var(--color-primary);
+  /* Or your theme's accent color */
+  color: var(--color-text-on-primary);
+  border-color: var(--color-primary-dark);
+  /* Or a darker shade of the accent */
+  font-weight: 600;
+}
+
+.lottie-file-chip .chip-name {
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.edit-chip-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+  transition: opacity var(--transition-speed);
+}
+
+.edit-chip-btn:hover {
+  opacity: 1;
+}
+
+.edit-chip-btn svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+.chip-edit-input {
+  /* Make the input fill the available space and look like the chip */
+  flex-grow: 1;
+  width: auto;
+  border: none;
+  background-color: transparent;
+  /* Inherit background */
+  padding: 0;
+  /* Remove default padding */
+  margin: 0;
+  /* Remove default margin */
+  font-size: 0.8rem;
+  font-family: var(--font-family-base);
+  font-weight: 500;
+  /* Match chip font weight */
+  color: var(--color-text-secondary);
+  /* Match chip text color */
+  line-height: 1.5;
+  /* Match chip line height */
+  min-width: 50px;
+  /* Prevent it from becoming too small */
+}
+
+.chip-edit-input:focus {
+  outline: none;
+  /* The chip itself will have focus styling if needed */
+  background-color: rgba(255, 255, 255, 0.5);
+  /* Slight highlight on focus */
+}
+
+.lottie-file-chip:hover {
+  background-color: #d0d0d0;
+  box-shadow: var(--shadow-sm);
+}
+
+.lottie-file-chip.selected {
+  background-color: var(--color-primary);
+  /* Or your theme's accent color */
+  color: var(--color-text-on-primary);
+  border-color: var(--color-primary-dark);
+  /* Or a darker shade of the accent */
+  font-weight: 600;
+}
+
+.add-chip-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  color: #555;
+  /* var(--color-text-secondary); */
+  border: 2px dashed #ccc;
+  /* var(--color-border); */
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 1;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.2s;
+  flex-shrink: 0;
+  margin-right: 4px;
+  /* var(--spacing-sm); */
+}
+
+.add-chip-button:hover {
+  background-color: #e0e0e0;
+  border-color: #4CAF50;
+  /* var(--color-primary); */
+  transform: scale(1.05);
+}
+
+#lottieFileChips {
+  overflow: auto;
+  overflow-y: hidden;
+  padding-left: 1rem;
+  padding-bottom: 3px;
+}
+
+
+#lottieFileChipsContainer.drag-over {
+  /* Ensure your chip container has this ID */
+  outline: 2px dashed #4CAF50;
+  /* var(--color-primary); */
+  outline-offset: -4px;
+  background-color: rgba(76, 175, 80, 0.05);
+  /* Example green tint */
+}
+
+
+/* --- All Chips Overlay Styles --- */
+.all-chips-overlay-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.65);
+  /* Semi-transparent background */
+  display: none;
+  /* Initially hidden, JS will toggle to 'flex' */
+  justify-content: center;
+  align-items: center;
+  /* Align panel to the center */
+  padding: 2vh 15px;
+  /* Padding for smaller screens */
+  z-index: 1000;
+  /* Ensure it's above other content */
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Style for when the overlay is active (JS will add/remove this or set display directly) */
+.all-chips-overlay-backdrop.active {
+  display: flex;
+  opacity: 1;
+}
+
+.all-chips-overlay-panel {
+  background-color: #ffffff;
+  /* var(--color-surface); */
+  width: 90%;
+  max-width: 450px;
+  /* Or your preferred max-width */
+  height: auto;
+  max-height: 80vh;
+  /* Limit height and allow internal scroll */
+  border-radius: 12px;
+  /* var(--border-radius-lg); */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  /* var(--shadow-lg); */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Children will handle their own scroll */
+  transform: translateY(-20px);
+  /* Initial state for entry animation */
+  opacity: 0;
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.all-chips-overlay-backdrop.active .all-chips-overlay-panel {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.all-chips-overlay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  border-bottom: 1px solid #e0e0e0;
+  /* var(--color-border); */
+  flex-shrink: 0;
+  /* Prevent header from shrinking */
+}
+
+.all-chips-overlay-header h3 {
+  margin: 0;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+  /* var(--color-text-primary); */
+}
+
+.all-chips-overlay-close-btn {
+  background: none;
+  /* #f1f1f1; */
+  border: none;
+  /* 1px solid #ddd; */
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  /* Adjust for '×' size */
+  line-height: 26px;
+  /* Center the '×' */
+  text-align: center;
+  cursor: pointer;
+  color: #777;
+  /* var(--color-text-secondary); */
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.all-chips-overlay-close-btn:hover {
+  background-color: #e0e0e0;
+  /* var(--color-hover-bg); */
+  color: #333;
+  /* var(--color-text-primary); */
+}
+
+.all-chips-overlay-list-container {
+  overflow-y: auto;
+  padding: 15px;
+  flex-grow: 1;
+  /* Allow list to take available space and scroll */
+}
+
+/* Styles for chips within the overlay list (these should already be fine from previous step) */
+#allChipsListContainer .overlay-chip {
+  display: flex;
+  /* Use flexbox for alignment */
+  justify-content: space-between;
+  /* Push items to ends */
+  align-items: center;
+  /* Vertically center items */
+  width: 100%;
+  /* Full width */
+  padding: 10px;
+  margin-bottom: 8px;
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  /* var(--border-radius-sm); */
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: background-color 0.2s, border-color 0.2s;
+  box-sizing: border-box;
+  /* Ensure padding is included in width */
+}
+
+#allChipsListContainer .overlay-chip .overlay-chip-name {
+  flex-grow: 1;
+  /* Allow name to take up available space */
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 8px;
+  /* Space between name and edit button */
+}
+
+#allChipsListContainer .overlay-chip .chip-edit-input {
+  height: auto;
+  /* Let the input determine its own height */
+}
+
+#allChipsListContainer .overlay-chip:last-child {
+  margin-bottom: 0;
+}
+
+#allChipsListContainer .overlay-chip:hover {
+  background-color: #f0f0f0;
+  border-color: #ddd;
+}
+
+#allChipsListContainer .overlay-chip.selected {
+  background-color: #e3f2fd;
+  /* Light blue for selected var(--color-primary-light, #d1eaff); */
+  border-color: #3498db;
+  /* var(--color-primary); */
+  font-weight: 600;
+  color: #1565c0;
+  /* Darker blue var(--color-primary-dark, var(--color-primary)); */
+}
+
+.more-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xs) var(--spacing-md);
+  background-color: #e9e9e9;
+  /* Slightly different from normal chip */
+  color: #2a9484;
+
+  border-radius: var(--border-radius-pill);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid var(--color-border);
+  /* If active chip is not the last one */
+  white-space: nowrap;
+  height: 2rem;
+}
+
+.more-chip:hover {
+  background-color: #dcdcdc;
+  box-shadow: var(--shadow-sm);
+}
+
+#uploadMultipleLabel {
+  display: none;
+}
+
+/* Optional: Style for the container if it needs more than inline styles */
+/* #lottieFileChipsContainer { ... } */
+
+#lottiePreview.dragover-preview {
+  /* Remove the border property if it exists here */
+  /* border: 2px dashed #4CAF50; */
+
+  outline: 2px dashed #4CAF50;
+  /* Use outline instead of border */
+  outline-offset: -2px;
+  /* Pull the outline slightly inside if desired, or set to 0 for directly on the edge */
+
+}
+
+#openStateMachineBuilderBtn.has-statemachine {
+  background-color: #dc3545;
+  /* A shade of red */
+}
+
+
+.state-machine-pill {
+  /* Reset and Layout */
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  /* Ensures it matches your site font */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  /* Or your standard button height */
+  border-radius: 18px;
+  /* height / 2 for a perfect pill */
+  padding: 0 var(--spacing-md);
+  /* Horizontal padding */
+  padding-left: 8px;
+  gap: 6px;
+  /* Colors (Normal State) */
+  background-color: var(--color-surface-secondary);
+  color: var(--color-text-primary);
+
+  /* --- ADD THESE LINES --- */
+  background-image: none;
+  /* Explicitly remove any old bg image */
+  background-repeat: no-repeat;
+  /* --- END ADD --- */
+
+  /* Transitions */
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+
+  /* Ensure it doesn't shrink */
+  flex-shrink: 0;
+}
+
+.state-machine-pill:not(.has-statemachine):hover {
+  background-color: var(--color-surface-tertiary);
+}
+
+/* Rule 2: Apply hover to the button when it IS split 
+   (This will act as the "text part" hover) */
+.state-machine-pill.has-statemachine:hover:not(:has(.pill-icon-btn:hover)) {
+  background-color: var(--color-surface-tertiary);
+}
+
+/* State: Has State Machine */
+#openStateMachineBuilderBtn.has-statemachine {
+  padding-right: 0;
+
+  /* Re-assert the default background color, now with high specificity */
+  background-color: #f0f0f0;
+  background-image: none;
+  /* Also ensure no star image */
+}
+
+/* Text span inside the pill */
+#stateMachineBtnText {
+  font-size: 0.9em;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+/* Wrapper for the separator and icon */
+#stateMachineBtnView {
+  display: flex;
+  /* Toggled by JS */
+  align-items: center;
+  height: 100%;
+}
+
+/* Separator line */
+.pill-separator {
+  width: 1px;
+  height: 16px;
+  /* Adjust height as needed */
+  background-color: var(--color-border);
+
+}
+
+/* Icon button on the right */
+.pill-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  /* Reduced width */
+  height: 100%;
+  border-radius: 0 16px 16px 0;
+  /* Adjust rounding to match new height */
+  transition: background-color 0.2s ease;
+}
+
+/* Icon hover state */
+.pill-icon-btn:hover {
+  background-color: #d4edda;
+  /* Light green background on hover */
+  color: #155724;
+  /* Darker green icon on hover */
+}
+
+.pill-icon-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+
+.pill-default-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  /* Stops the icon from shrinking */
+
+  /* * If the icon color is wrong, uncomment this line 
+     * to make it match the text.
+    */
+  /* fill: currentColor; */
+}
+
+#openStateMachineBuilderBtn.has-statemachine:has(.pill-icon-btn:hover),
+.state-machine-pill.has-statemachine:hover:not(:has(.pill-icon-btn:hover)) .pill-icon-btn {
+  background-color: #f0f0f0;
+  /* Keep the default gray background */
+}
+
+.state-machine-pill.has-statemachine:hover:not(:has(.pill-icon-btn:hover)) .pill-icon-btn {
+  background-color: var(--color-surface-secondary);
+}
+
+.window-share-btn {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: 20px;
+  letter-spacing: 1px;
+  font-size: 10px;
+  border-radius: 20px;
+  background: #acacac;
+  border: none;
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0 10px;
+  padding-left: 7px;
+}
+
+.window-share-btn:hover {
+  background: var(--color-bg-light, #325cb6);
+
+}
+
+.window-share-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Share Modal Overlay */
+#shareModalOverlay {
+  /* .overlay class from your CSS should handle most of this */
+  /* These are just overrides and specific panel styles */
+  display: none;
+  /* Hidden by default */
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+  /* Ensure it's above confirmDeleteOverlay if needed */
+}
+
+#shareModalOverlay.active {
+  display: flex;
+}
+
+.share-modal-panel {
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  /* Adding transitions for the panel */
+  transform: scale(0.95);
+  opacity: 0;
+  transition: all 0.3s ease-out;
+}
+
+#shareModalOverlay.active .share-modal-panel {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.share-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md, 16px) var(--spacing-lg, 24px);
+  border-bottom: 1px solid var(--color-border-light, #EEE);
+}
+
+.share-modal-header h3 {
+  margin: 0;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.share-modal-body {
+  padding: var(--spacing-lg, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg, 24px);
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.share-modal-step {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md, 16px);
+}
+
+.share-modal-step-number {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--color-primary-light, #E0E7FF);
+  color: var(--color-primary, #4F46E5);
+  font-size: 0.9em;
+  font-weight: 600;
+}
+
+.share-modal-step-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs, 8px);
+}
+
+.share-modal-step-content h4 {
+  margin: 0;
+  font-size: 1em;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.share-modal-step-content p {
+  margin: 0;
+  font-size: 0.9em;
+  color: var(--color-text-secondary, #555);
+  line-height: 1.5;
+}
+
+/* Re-using your .btn class and adding helpers */
+.share-modal-step-content .btn {
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.share-modal-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--color-bg-light, #F9F9F9);
+  border: 1px solid var(--color-border-light, #EEE);
+  border-radius: 26px;
+  color: var(--color-primary, #4F46E5);
+  font-size: 0.9em;
+  text-decoration: none;
+  align-self: flex-start;
+  transition: all 0.2s ease;
+}
+
+.share-modal-link:hover {
+  background: var(--color-bg-lighter, #FFF);
+  border-color: var(--color-border, #CCC);
+}
+
+.share-modal-link svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+}
+
+.share-modal-input-wrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--color-border, #CCC);
+  border-radius: 26px;
+  padding: 0 12px;
+  transition: all 0.2s ease;
+  margin-top: 12px;
+}
+
+.share-modal-input-wrapper:focus-within {
+  border-color: var(--color-primary, #4F46E5);
+  box-shadow: 0 0 0 2px var(--color-primary-light, #E0E7FF);
+}
+
+.share-modal-input-wrapper svg {
+  width: 20px;
+  height: 20px;
+  color: var(--color-icon, #777);
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.share-modal-input-wrapper input {
+  flex-grow: 1;
+  border: none;
+  outline: none;
+  padding: 10px 0;
+  font-size: 0.9em;
+  background: transparent;
+  color: var(--color-text-primary);
+}
+
+.share-modal-footer {
+  padding: var(--spacing-md, 16px) var(--spacing-lg, 24px);
+  border-top: 1px solid var(--color-border-light, #EEE);
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Final Link Output Styles */
+.share-modal-final-link-wrapper {
+  display: flex;
+  width: 100%;
+}
+
+.share-modal-final-link-wrapper input {
+  flex-grow: 1;
+  border: 1px solid var(--color-border, #CCC);
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  padding: 10px 12px;
+  font-size: 0.9em;
+  background: var(--color-bg-light, #F9F9F9);
+  color: var(--color-text-secondary, #555);
+  outline: none;
+}
+
+.share-modal-final-link-wrapper .btn {
+  flex-shrink: 0;
+  border-radius: 0 6px 6px 0;
+  border: 1px solid var(--color-border, #CCC);
+  border-left: none;
+}
+
+
+.window-maximize-btn {
+  display: inline-flex;
+  align-items: center;
+  /* justify-content: center; */
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  /* margin-left: 24px; */
+  padding: 0;
+  border-radius: 20px;
+  background: #28b579;
+  border: none;
+  color: var(--color-icon, #555);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  justify-content: center;
+
+}
+
+.window-maximize-btn:hover {
+  background: var(--color-bg-light, #126b44);
+
+}
+
+.window-maximize-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Maximize Overlay Panel */
+#maximizePreviewOverlay {
+  /* .overlay class handles backdrop */
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+#maximizePreviewOverlay.active {
+  display: flex;
+}
+
+.maximize-preview-panel {
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  width: 80vw;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+  /* Transitions for the panel */
+  transform: scale(0.95);
+  opacity: 0;
+  transition: all 0.3s ease-out;
+}
+
+#maximizePreviewOverlay.active .maximize-preview-panel {
+  transform: scale(1);
+  opacity: 1;
+
+}
+
+.maximize-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  /* Close button on the right */
+  padding: var(--spacing-sm, 12px);
+  border-bottom: 1px solid var(--color-border-light, #EEE);
+  flex-shrink: 0;
+}
+
+/* Container for the maximized animation */
+#lottiePreviewMaximized {
+  flex-grow: 1;
+  width: 100%;
+  height: 100%;
+  /* Will fill the flexible space */
+  overflow: hidden;
+  border-radius: 0 0 12px 12px;
+}
+
+#closeShareModalBtn {
+  background: transparent;
+  margin: 0;
+  padding: 0;
+}
+
+.export-settings-header {
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-sm) var(--spacing-md) 0;
+  gap: var(--spacing-sm);
+}
+
+.export-settings-header h3 {
+  margin: 0;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  padding: 0;
+  /* Remove old padding if any */
+}
+
+.export-header-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--color-border-light, #EEE);
+}
+
+.export-tab-btn {
+  padding: 8px 16px;
+  font-size: 0.9em;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  margin-bottom: -1px;
+  /* Overlap border */
+  transition: all 0.2s ease;
+}
+
+.export-tab-btn:hover {
+  color: var(--color-text-primary);
+}
+
+.export-tab-btn.active {
+  color: var(--color-primary, #4F46E5);
+  border-bottom-color: var(--color-primary, #4F46E5);
+}
+
+/* Tab Content */
+#exportTabContent {
+  padding: var(--spacing-md);
+}
+
+.export-tab-panel {
+  display: none;
+  /* Hidden by default */
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.export-tab-panel.active {
+  display: flex;
+  /* Shown when active */
+}
+
+/* Footer for download button */
+.export-footer-action {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--spacing-xs);
+  border-top: 1px solid var(--color-border-light, #EEE);
+}
+
+/* Message for empty tabs */
+.empty-tab-message {
+  font-size: 0.9em;
+  color: var(--color-text-secondary);
+  text-align: center;
+  padding: var(--spacing-md) 0;
+  margin: 0;
+}
+
+/* --- Old Header Style Cleanup --- */
+/* We've replaced the old header structure,
+   so you may need to adjust or remove old styles
+   like .gif-settings-header if they conflict. */
+.gif-settings-header {
+  /* This class is no longer used in the new structure */
+  /* You can likely remove its styles */
+}
+
+
+.export-tabs {
+  display: flex;
+  gap: 16px;
+  cursor: pointer;
+}
+
+.export-tab {
+  padding-bottom: 8px;
+  margin: 0;
+  font-size: 1em;
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.export-tab:hover {
+  color: var(--color-text-primary);
+}
+
+.export-tab.active {
+  color: var(--color-text-primary);
+  font-weight: 600;
+  border-bottom-color: var(--color-accent);
+  height: 30px;
+}
+
+
+.segmented-control {
+  display: flex;
+  padding: 0px;
+  background-color: var(--color-background-light, #f0f0f0);
+  border-radius: 999px;
+  /* Pill shape */
+  width: fit-content;
+}
+
+.segmented-control button {
+  background-color: transparent;
+  border: none;
+  padding: 6px 12px;
+  padding-bottom: 7px;
+  margin: 4px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+  font-family: var(--font-family-base);
+}
+
+/* Style for non-active buttons on hover */
+.segmented-control button:not(.active):hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Active state - using your site's accent color */
+.segmented-control button.active {
+  background-color: var(--color-accent);
+  /* This is your existing yellow color */
+  color: #FFFFFF;
+
+}
+
+#videoExportContent {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+#gifExportContent {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Progress Button State */
+.btn--progress {
+  color: transparent !important;
+  /* Hide text but keep width */
+  position: relative;
+  pointer-events: none;
+  /* Prevent clicking while loading */
+  cursor: wait;
+}
+
+/* The Circular Loader */
+.btn--progress {
+  color: transparent !important;
+  /* Hide Text */
+  background-image: none !important;
+  /* Hide Icon */
+  position: relative;
+  pointer-events: none;
+  cursor: wait;
+}
+
+/* Specific fix for GIF Button to keep Accent Color + Opacity when loading */
+#downloadGifBtn.btn--progress {
+  background-color: var(--color-accent) !important;
+  opacity: 1 !important;
+  /* Prevent the 0.5 opacity from :disabled state */
+}
+
+/* The Circular Loader */
+.btn--progress::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+
+  /* Dynamic Loader Colors: 
+     1. Uses text-on-accent color for the filled part (matches button text)
+     2. Uses transparent for the empty part (shows button bg) 
+  */
+  background: conic-gradient(#FFFFFF var(--progress, 0%),
+      rgba(255, 255, 255, 0.3) 0deg);
+  /* Creates the donut hole (rest of this section is unchanged) */
+  -webkit-mask: radial-gradient(closest-side, transparent 75%, black 76%);
+  mask: radial-gradient(closest-side, transparent 75%, black 76%);
+}
+
+.btn--progress.progress-complete::after {
+  opacity: 0;
+  transition: opacity 0.5s ease-out;
+  /* Customize transition duration */
+}
+
+
+
+
+
+#downloadVideoBtn.btn--progress {
+  background-color: var(--color-accent) !important;
+  opacity: 1 !important;
+  /* Prevent the 0.5 opacity from :disabled state */
+}
+
+/* Ensure the spinner for the video button uses the correct white contrast */
+#downloadVideoBtn.btn--progress::after {
+  /* Set the filled portion of the conic gradient to white (#FFFFFF) */
+  background: conic-gradient(#FFFFFF var(--progress, 0%),
+      rgba(255, 255, 255, 0.3) 0deg);
+}
+
+
+.gif-settings select#gifScale {
+  font-family: var(--font-family-base) !important;
+  font-size: 13px;
+  /* Slightly smaller to accommodate the extra text */
+  color: var(--color-text-primary);
+  background-color: white;
+  min-width: 180px;
+  /* Ensure dropdown is wide enough for the resolution text */
+  cursor: pointer;
+  text-overflow: ellipsis;
+}
+
+/* Style the options for better readability */
+.gif-settings select#gifScale option {
+  font-size: 13px;
+  color: #333;
+  /* Dark gray for the main text */
+  padding: 4px;
+}
+
+
+/* Custom Dropdown Styling */
+.custom-dropdown-container {
+  position: relative;
+
+  font-family: var(--font-family-base);
+}
+
+.custom-dropdown-trigger {
+  width: 100%;
+  min-width: 100px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-pill);
+  font-size: 14px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.custom-dropdown-trigger:hover {
+  border-color: var(--color-primary);
+}
+
+.dropdown-arrow {
+  margin-left: 10px;
+  color: #999;
+  transition: transform 0.2s ease;
+}
+
+/* Open State */
+.custom-dropdown-container.active .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.custom-dropdown-container.active .custom-dropdown-options {
+  display: block;
+  animation: fadeIn 0.15s ease-out;
+}
+
+/* Dropdown Menu */
+.custom-dropdown-options {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: -80px;
+  width: 200px;
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  overflow: hidden;
+  padding: 4px;
+}
+
+/* Individual Option */
+.custom-option {
+  padding: 8px 12px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* Pushes resolution to the right */
+}
+
+.custom-option:hover {
+  background-color: #f5f5f5;
+}
+
+.custom-option.selected {
+  background-color: #e8f5e9;
+  /* Light green bg */
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+/* The Styling for Resolution Text */
+.option-resolution {
+  font-size: 12px;
+  color: #888;
+  margin-left: 10px;
+  font-weight: 400;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+.maximize-player-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(5px);
+  border-top: 1px solid var(--color-border);
+  width: 100%;
+  flex-shrink: 0;
+  /* Prevent controls from squishing */
+  border-radius: 0 0 12px 12px;
+  /* Rounded corners at bottom only */
+}
+
+#maxSeekbar {
+  flex-grow: 1;
+  height: 6px;
+  /* Slightly thinner for modal */
+  cursor: pointer;
+}
+
+#maxSeekbar::-webkit-slider-thumb {
+  /* This targets Chrome, Safari, and newer Edge browsers */
+  margin-top: 1px;
+  /* Moves the thumb 2px down */
+}
+
+#maxSeekbar::-moz-range-thumb {
+  /* This targets Firefox */
+  /* Firefox usually centers automatically, but a slight transform can adjust it */
+  transform: translateY(1px);
+  /* Shifts the thumb 1px down */
+}
+
+
+#closeMaximizePreviewBtn {
+  /* Ensure static positioning from HTML is maintained */
+  position: static !important;
+  width: 30px;
+  height: 30px;
+  background: none !important;
+  /* Remove the conflicting dark background */
+  border-radius: 50% !important;
+  /* Force a circle shape */
+  padding: 0 !important;
+  margin: 0 !important;
+
+  display: flex;
+  /* Use flex to center the icon */
+  align-items: center;
+  justify-content: center;
+
+  /* Set color for the icon (dark gray) */
+  color: var(--color-text-primary);
+  opacity: 0.7;
+  transition: opacity 0.2s, background-color 0.2s;
+}
+
+/* 2. Style the SVG icon itself */
+#closeMaximizePreviewBtn svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+  /* Inherit color from the button */
+}
+
+/* 3. Add a subtle hover state */
+#closeMaximizePreviewBtn:hover {
+  opacity: 1;
+  background-color: #f0f0f0;
+  /* Light background on hover */
+}
+
+#postcardLandingWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 200;
+  /* Above everything else initially */
+  background-color: var(--color-background);
+  transition: transform 580ms cubic-bezier(0.1, 0.1, 0.1, 1),
+    opacity 450ms cubic-bezier(0.1, 0.1, 0.2, 1);
+}
+
+/* Re-use your existing animate-out logic */
+#postcardLandingWrapper.animate-out {
+  transform: scale(0.95) translateY(-20px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+#postcardLoadingText {
+  /* Start hidden so it can fade in */
+  opacity: 0;
+
+  /* Apply the slide up animation */
+  animation: slideUpFadeIn 1s cubic-bezier(0.1, 0.1, 0.1, 1) forwards;
+
+  /* Add a small delay so the animation starts slightly after the Lottie appears */
+  animation-delay: 0.3s;
+
+}
+
+#shareModalOverlay,
+#maximizePreviewOverlay {
+  /* Override the generic .overlay delay */
+  transition: opacity 300ms linear 0s, pointer-events 0s linear 300ms !important;
+}
+
+/* Ensure the active state still fades in quickly */
+#shareModalOverlay.active,
+#maximizePreviewOverlay.active {
+  transition: opacity 200ms linear !important;
+}
+
+
+
+#copyFinalShareLinkBtn {
+  /* Set fixed size and padding for the icon button */
+  padding: 0 12px;
+  width: 44px;
+  /* Fixed width for a clean square look */
+  height: 44px;
+  flex-shrink: 0;
+}
+
+#copyFinalShareLinkBtn:hover {
+  /* Subtle hover effect for the icon */
+  transform: translateY(0px);
+}
+
+/* 1. Style the image element inside the button */
+.copy-link-icon {
+  width: 18px;
+  height: 18px;
+  /* This filter turns a black SVG (which most icons are) completely white */
+  filter: brightness(0) invert(1);
+  transition: transform 0.2s ease;
+}
+
+#copyFinalShareLinkBtn:hover .copy-link-icon {
+  /* Subtle hover effect for the icon */
+  transform: scale(1.1);
+
+}
+
+#copyFinalShareLinkBtn:not(:has(img)):not(:has(svg)) {
+  color: var(--color-text-primary) !important;
+  width: 100px;
+  /* Force text to black/dark gray */
+}
+
+
+
+
+
+#customContent {
+  width: 100vw;
+  /* Use viewport units */
+  height: 100vh;
+  border: none;
+  display: block;
+  max-width: 100%;
+  /* Safety lock */
+}
+
+/* --- Text Editor Modal --- */
+.text-editor-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.text-editor-modal.active {
+  display: flex;
+  opacity: 1;
+}
+
+.text-editor-modal-content {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  animation: textModalSlideIn 0.2s ease;
+}
+
+@keyframes textModalSlideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.text-editor-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.text-editor-modal-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.text-editor-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #999;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.15s ease;
+}
+
+.text-editor-modal-close:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.text-editor-textarea {
+  flex: 1;
+  margin: 16px 20px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 150px;
+  max-height: 50vh;
+  line-height: 1.5;
+}
+
+.text-editor-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb, 66, 133, 244), 0.2);
+}
+
+.text-editor-modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding: 16px 20px;
+  border-top: 1px solid #eee;
+}
+
+/* Paragraph button for text input - positioned inside the input */
+.text-input-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.text-input-wrapper .text-editor-input {
+  padding-right: 28px;
+  /* Make room for the icon inside */
+}
+
+.text-expand-btn {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  border-radius: 3px;
+  padding: 2px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+
+.text-expand-btn:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+  color: #333;
+}
+
+.text-expand-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.badge-experimental {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: normal;
+  color: #467e86;
+  background-color: #d7faff;
+  border-radius: 999px;
+  text-transform: uppercase;
+  margin-left: 8px;
+  vertical-align: middle;
+  letter-spacing: 0.5px;
+}

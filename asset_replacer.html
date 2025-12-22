@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lottie Asset Replacer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <link rel="stylesheet" href="css/asset_replacer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<style>
+
+#applyAndCloseBtn {
+    top: 12px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #2fcf9a , #10b981);
+    position: absolute;
+    border-radius: 999px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    z-index: 999;
+    overflow: visible;
+    transition: all 0.3s ease;
+    padding: 0;
+    box-shadow: 0 4px 8px rgba(26, 188, 156, 0.3);
+}
+
+#applyAndCloseBtn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 12px rgba(26, 188, 156, 0.5);
+    background: linear-gradient(135deg, #1abc9c, #16a085);
+}
+
+/* Tooltip Styling */
+#applyAndCloseBtn .tooltip {
+    position: absolute;
+    top: 50px;
+    right: -70px;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0; /* Hidden by default */
+    visibility: hidden;
+    transition: opacity 0.2s ease;
+}
+
+/* Show tooltip on hover */
+#applyAndCloseBtn:hover .tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Optional: Button hover effect */
+
+</style>
+<body class="text-gray-800 flex flex-col items-center p-4 selection:bg-sky-500 selection:text-white" style="background:#f5f5f5; height: 100vh; padding-top:0;">
+
+
+  <button id="applyAndCloseBtn" aria-label="Save changes and exit">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="20" height="20">
+          <path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
+      </svg>
+      <span class="tooltip">Save Changes and Exit</span>
+  </button>
+
+
+
+
+    <div class="rounded-xl p-6 md:p-8 w-full max-w-4xl" style="padding-top: 40px;">
+        <div id="lottieFileWrapper" class="mb-6">
+            <label for="lottieFile" class="block mb-2 text-sm font-medium text-sky-700">Upload Lottie JSON File</label>
+            <input type="file" id="lottieFile" accept=".json" class="block w-full text-sm text-gray-700
+                file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold
+                file:bg-sky-500 file:text-white hover:file:bg-sky-600
+                cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+        </div>
+
+        <div class="lottie-preview-wrapper mb-6">
+            <div id="lottiePreview" class="w-full h-64 md:h-80 lg:h-96 bg-gray-200 rounded-t-xl flex items-center justify-center text-gray-500 text-sm border border-gray-300">
+                Upload a Lottie file or wait for data from parent.
+            </div>
+            <div class="preview-buttons-bar">
+                <div id="replaceSequenceContainer">
+                    <button id="replaceSequenceButton" class="sequence-button" title="Replace a sequence of assets" disabled>
+                        <img src="assets/sequence.svg" alt="Replace Sequence" class="w-5 h-5">
+                        <span style="margin-bottom: 1px;">Select Sequence</span>
+                    </button>
+                    <button id="browseSequenceFilesButton" class="sequence-button hidden" title="Choose multiple files">
+                        <img src="assets/multifiles.svg" alt="Choose multiple files" class="w-5 h-5">
+                        <span id="browseSequenceFilesButtonText" style="margin-bottom: 1px;">Replace Selected</span>
+                    </button>
+                    <button id="cancelSequenceButton" class="sequence-button hidden" title="Cancel sequence replacement">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="action-button-group">
+                    <button id="downloadAllAssetsButton" title="Download All Assets as ZIP" disabled>
+                        <img src="assets/zip.svg" alt="Download ZIP" class="w-5 h-5">
+                    </button>
+                    <button id="downloadLottie" title="Download Modified Lottie" disabled>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z" />
+                            <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <input type="file" id="multipleFilesInput" multiple class="hidden-file-input" accept="image/png, image/jpeg, image/gif, image/webp, image/svg+xml">
+
+        <div id="assetListOuterContainer">
+            <div id="assetListContainer" class="max-h-200 overflow-y-auto">
+                <div id="assetList" class="grid grid-cols-1 sm:grid-cols-2 gap-4" ></div>
+                <p class="text-gray-500 text-sm hidden text-center py-4" id="noAssetsMessage">No image assets found or Lottie file not loaded.</p>
+            </div>
+            <div id="scrollUpIndicator" class="scroll-indicator">Scroll Up &uarr;</div>
+            <div id="scrollDownIndicator" class="scroll-indicator">Scroll Down &darr;</div>
+        </div>
+    </div>
+
+     <div id="sequenceTooltip" class="tooltip-base">
+        <span id="selectionCounterPill" class="selection-counter-pill" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 10px;">0 Selected</span>
+        <span style=" margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Please select the first and the last image of your sequence</span>
+        <button id="closeSequenceTooltipButton" aria-label="Close sequence selection" title="Cancel sequence selection"
+            style="display: flex; align-items: center; justify-content: center; width: 1.5rem; height: 1.5rem;
+            border-radius: 9999px; background-color: #ef4444; color: white; cursor: pointer; margin-right: 0.15rem;
+            flex-shrink: 0; border: none; padding: 0;">
+            <img src="assets/close.svg" alt="Close" style="width: 0.875rem; height: 0.875rem;">
+        </button>
+    </div>
+
+    <div id="sequenceErrorTooltip" class="tooltip-base">
+
+        <span id="sequenceErrorText" class="flex-grow" style="margin-right: 8px; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Please ensure the number of selections is equal to the number of assets selected.</span>
+        <div class="flex gap-2 flex-shrink-0">
+            <button id="selectAgainButton" class="error-tooltip-button select-again-button">Select Again</button>
+             <button id="replaceAnywayButton" class="error-tooltip-button replace-anyway-button">Replace Anyway</button>
+        </div>
+    </div>
+
+     <script src="js/assset_replacer.js" defer></script>
+</body>
+</html>

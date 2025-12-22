@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>lottiemon</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/index.css">
+  <script>
+    (function () {
+      // Check for any of your "external load" parameters
+      const params = new URLSearchParams(window.location.search);
+      const isExternal = params.has('postcard') ||
+        params.has('lottie') ||
+        params.has('dotLottie') ||
+        params.has('gdrivelottie') ||
+        params.has('gdriveDotlottie');
+
+      if (isExternal) {
+        // If external, inject styles to swap visibility IMMEDIATELY
+        document.write('<style>#uploadWrapper { display: none !important; } #postcardLandingWrapper { display: flex !important; }</style>');
+      }
+    })();
+  </script>
+
+
+
+  <style>
+    #editorScrollContent {
+      padding-bottom: 600px;
+    }
+  </style>
+</head>
+
+<body style="overflow: auto; height: auto; min-height: 100vh;">
+
+  <div id="allChipsOverlay" class="all-chips-overlay-backdrop" style="display: none;">
+    <div class="all-chips-overlay-panel">
+      <div class="all-chips-overlay-header">
+        <h3 style="margin: 0; font-size: 1.1em;">All Loaded Animations</h3>
+        <button id="closeAllChipsOverlayBtn" class="all-chips-overlay-close-btn"
+          aria-label="Close All Chips Overlay">&times;</button>
+      </div>
+      <div id="allChipsListContainer" class="all-chips-overlay-list-container">
+      </div>
+    </div>
+  </div>
+
+  <div id="confirmDeleteOverlay" class="overlay" style="z-index: 1001;">
+    <div class="confirm-dialog-panel">
+      <h3>Confirm Deletion</h3>
+      <p>Are you sure you want to delete the animation "<strong id="confirmDeleteAnimationName"></strong>"?</p>
+      <p class="confirm-dialog-warning">This action cannot be undone.</p>
+      <div class="confirm-dialog-buttons">
+        <button id="cancelDeleteBtn" class="btn">Cancel</button>
+        <button id="confirmDeleteBtn" class="btn btn--danger">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="additionalFileInput" accept=".json" style="display: none;" />
+  <input type="file" id="fileInput" accept=".json, .lottie" style="display: none;" />
+  <input type="file" id="multipleFileInput" accept=".json, .lottie" multiple style="display: none;" />
+  <div id="top-bar">
+    <div style="flex: 1; justify-content:center; margin:auto;">
+      <div style="width:85%; display: flex;  margin:auto; justify-content: flex-start;">
+        <img src="mainLogo.svg" alt="Main Logo" class="page-logo" id="mainPageLogo" style="cursor: pointer;" />
+      </div>
+    </div>
+
+    <div style="flex: 1.1; margin: auto; justify-content:center;">
+      <div style="max-width: 400px; display: flex;  margin:auto; justify-content: flex-end;">
+        <div id="headerLottie"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="postcardLandingWrapper" style="display: none;">
+    <div id="postcardLottieAnimation" style="width: 300px; height: 300px;"></div>
+    <h2 id="postcardLoadingText"
+      style="margin-top: 20px; font-weight: 500; color: var(--color-text-secondary); font-family: var(--font-family); font-size: 1.2rem; font-weight: 500;">
+      Placing your Lottie on the Postcard</h2>
+  </div>
+
+  <div id="uploadWrapper">
+    <div id="uploadButtonWrapper">
+      <label for="fileInput" id="uploadLabel" class="btn btn--primary">Choose Lottie JSON</label>
+    </div>
+    <div>
+      <label for="multipleFileInput" id="uploadMultipleLabel" class="btn btn--secondary">Choose Multiple Lottie
+        JSONs</label>
+    </div>
+    <div class="drag-drop-overlay">
+      <div class="chat-bubble" id="randomTextContainer">Feed me a lottie!</div>
+      <div id="dragDropLottie"></div>
+    </div>
+
+    <input type="file" id="fileInput" accept=".json, .lottie" />
+  </div>
+
+  <div class="window-container">
+    <div class="window-header">
+      <span id="dotLottieWindowTitle" class="window-title" contenteditable="true" style="display: none;">No file
+        loaded</span>
+      <span class="window-title" contenteditable="true" id="jsonWindowTitle">No file loaded</span>
+      <div style="display: flex; gap: 8px; flex-direction: row;">
+
+
+        <button id="openShareModalBtn" class="window-share-btn" title="Share Animation" aria-label="Share Animation">
+
+          <img src="share.svg" alt="Share Icon"
+            style="width: 12px; height: 12px; margin-right: 4px; padding-bottom: 1px; margin-left: 2px;" />
+
+          <span style="padding-bottom: 1px;">SHARE</span>
+        </button>
+        <button id="openMaximizePreviewBtn" class="window-maximize-btn" title="Maximize Preview"
+          aria-label="Maximize Preview">
+          <img src="maximize.svg" alt="Share Icon"
+            style="width: 12px; height: 12px; margin-right: 4px; padding-bottom: 1px; margin-left: 4px;" />
+        </button>
+        <button class="window-close" aria-label="Close Preview"
+          style="display: flex; margin: auto; justify-content: center; align-items: center; padding-left: 1px;"><img
+            src="closewhite.svg" alt="Share Icon"
+            style="width: 12px; height: 12px; margin-right: 4px; padding-bottom: 1px; margin-left: 2px;" /></button>
+      </div>
+
+    </div>
+    <div id="lottieFileChipsContainer"
+      style="padding: var(--spacing-sm) 0; border-bottom: 1px solid var(--color-border); display: none; background-color: #f9f9f9;">
+      <div id="lottieFileChips" style="display: flex;  gap: var(--spacing-sm);">
+      </div>
+    </div>
+    <div class="window-body checkerboard" style="flex-direction: column;">
+      <div class="preview-controls-top-left"
+        style="position: absolute; top: 10px; left: 10px; z-index: 10; display:flex; flex-direction:row;">
+        <button id="activateColorPickerBtn" class="control-button" title="Pick color from animation"
+          style="padding: 5px; background: #fff; border: 1px solid #ccc; border-radius: 10px; cursor: pointer;">
+          <img src="assets/target.svg" alt="Pick color" width="24" height="24">
+        </button>
+        <button id="openFlutterPreviewBtn" class="control-button" title="Preview in Flutter"
+          style="padding: 5px; background: #fff; border: 1px solid #ccc; border-radius: 10px; cursor: pointer; margin-left: 10px;">
+          <img src="assets/flutter.png" alt="Flutter Icon" width="24" height="24">
+        </button>
+      </div>
+      <div class="preview-bg-toggle" title="Toggle Background (Checkerboard/Solid)">
+        <span class="preview-bg-label">BG</span>
+
+        <label class="switch"> <input type="checkbox" id="previewBgToggle">
+          <span class="slider"></span>
+          <span class="sr-only">Toggle Preview Background</span>
+        </label>
+        <input type="color" id="previewBgColorPicker" value="#000000" title="Preview Background Color"
+          style="width: 22px; height: 22px; padding: 0; border: none; border-radius: 50%; overflow: hidden; cursor: pointer;">
+      </div>
+
+      <button id="deleteAnimationBtn" class="btn delete-animation-btn"
+        style="position: absolute; bottom: calc(var(--spacing-sm) + 60px); right: 12px; z-index: 10; display: none;">
+        <img src="assets/delete.svg" alt="Delete" style="width: 16px; height: 16px; filter: brightness(0) invert(1);">
+        <span class="btn-text">Delete Animation</span>
+      </button>
+
+      <div id="lottiePreview"></div>
+
+      <div class="lottie-player-controls">
+        <button id="playPauseBtn" class="control-button" aria-label="Pause">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+          </svg> </button>
+        <input type="range" id="lottieSeekbar" value="0" min="0" step="1" aria-label="Animation progress">
+        <div class="speed-control-pill" id="speedControlPillBtn" role="button" tabindex="0" aria-haspopup="true"
+          aria-expanded="false" aria-controls="speedSliderPopup">
+          <img src="assets/speed.svg" alt="Speed Icon" width="18" height="18"> <span id="speedValuePill"
+            style="width: 1.4rem;margin: auto;text-align: center;">1.0x</span>
+        </div>
+
+        <div class="speed-slider-popup" id="speedSliderPopup">
+
+          <label for="speedSliderMain" class="sr-only">Animation Speed</label>
+          <input type="range" id="speedSliderMain" min="0.1" max="3" step="0.1" value="1" list="speedStopsMain"
+            aria-labelledby="speedValuePill">
+          <button class="dismiss-speed-popup" id="dismissSpeedPopupBtn" aria-label="Dismiss speed control"
+            style="display: none;">
+            <svg viewBox="0 0 24 24">
+              <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" />
+            </svg> </button>
+          <datalist id="speedStopsMain">
+            <option value="0.5"></option>
+            <option value="1.0"></option>
+            <option value="1.5"></option>
+            <option value="2.0"></option>
+            <option value="2.5"></option>
+            <option value="3.0"></option>
+          </datalist>
+        </div>
+      </div>
+
+      <div id="animationDurationPill" class="info-pill" style="display: none;">0.00s</div>
+
+    </div>
+  </div>
+
+
+  <div id="mainContent" style="overflow-y: visible;">
+    <div id="editorArea">
+      <div id="editorScrollContent">
+
+
+        <div id="filterInfoPill"
+          style="display: none; align-items: center; gap: 6px; padding: 8px 12px; padding-left:16px; background-color: rgb(255 174 170); border-radius: 999px; margin: 30px auto 10px; width: fit-content; max-width: 90%;">
+          <span style="font-size: 0.9em;">Dismiss Color Search</span>
+          <span id="filterPillColorSwatch"
+            style="display: none; width: 20px; height: 20px; border: 1px solid #777; border-radius: 4px; vertical-align: middle;"></span>
+          <span id="filterPillHexDisplay"
+            style="font-size: 0.9em; font-family: monospace; display: none;">#XXXXXX</span>
+          <button id="resetFilterBtn" title="Clear filter and show all colors"
+            style="background: none; border: none; font-size: 1.2em; cursor: pointer; padding: 0 5px; padding-top:3px;">×</button>
+        </div>
+
+
+
+        <h3 id="colorInstancesLabel" class="editor-heading"><span style="margin-left: 6px;">Color Instance
+            Clusters</span>
+        </h3>
+        <div id="colorEditor">
+        </div>
+
+
+        <h3 id="gradientInstancesLabel" class="editor-heading" style="display: none;"><span
+            style="margin-left: 6px;">Gradient Instances</span></h3>
+        <div id="stopEditor">
+        </div>
+
+        <h3 id="textEditorLabel" class="editor-heading" style="display: none;"><span style="margin-left: 6px;">Text
+            Instances</span></h3>
+        <div id="textEditorContainer">
+
+        </div>
+
+
+        <h3 id="animatedColorLabel" class="editor-heading"><span style="margin-left: 6px;">Animated Color Instance
+            Clusters</span></h3>
+        <div id="animatedColorEditor"></div>
+
+        <h3 id="animatedGradientLabel" class="editor-heading"><span style="margin-left: 6px;">Animated Gradient
+            Instances</span></h3>
+        <div id="animatedGradientEditor"></div>
+
+
+
+
+
+
+        <div id="emptyStateDiv">
+          <img src="nocolor.png" alt="No colors detected">
+        </div>
+      </div>
+      <div class="editor-gradient-overlay-top"></div>
+      <div class="editor-gradient-overlay-bottom"></div>
+    </div>
+    <div id="midsection"></div>
+    <div id="previewArea">
+
+
+
+      <div class="section-card" id="jsonEditorCard">
+        <div class="json-header">
+          <h3 id="jsonExportLabel">Lottie JSON</h3>
+          <div class="json-header-controls">
+            <button id="openAssetReplacerBtn" class="btn btn--icon" title="Replace Embedded Image Assets" disabled
+              aria-label="Open Asset Replacer">
+            </button>
+            <button id="openOverlayBtn" class="btn btn--icon" title="Add/Edit Segments" disabled
+              aria-label="Open Trim Editor">
+            </button>
+            <button id="openCropBtn" class="btn btn--icon" title="Crop Animation" disabled
+              aria-label="Open Crop Editor">
+            </button>
+            <button id="downloadJsonBtn" class="btn btn--icon btn--secondary" title="Download Modified JSON"
+              style="display:none;" aria-label="Download Modified JSON">
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="section-card" id="dotLottieExportCard">
+        <div class="json-header">
+          <h3 id="dotLottieExportLabel">Dot Lottie</h3>
+          <div class="json-header-controls">
+            <button id="openStateMachineBuilderBtn" class="state-machine-pill" type="button"
+              title="Open State Machine Editor" style="display: none;">
+
+              <svg class="pill-default-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+
+              <span id="stateMachineBtnText">Build State Machine</span>
+
+              <div id="stateMachineBtnView">
+                <span class="pill-separator"></span>
+                <span id="stateMachineBtnViewIcon" class="pill-icon-btn" title="Run State Machine">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+                    <path
+                      d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                  </svg>
+                </span>
+              </div>
+            </button>
+            <button id="downloadDotLottieBtn" class="btn btn--icon btn--secondary" title="Download Modified .Lottie"
+              aria-label="Download Modified DotLottie">
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="section-card" id="exportOptionsCard">
+        <div class="gif-settings-header">
+          <div class="export-tabs">
+            <h3 id="gifExportTab" class="export-tab active" data-tab-target="#gifExportContent">GIF</h3>
+            <h3 id="videoExportTab" class="export-tab" data-tab-target="#videoExportContent">Video</h3>
+          </div>
+          <div class="gif-header-controls">
+            <button id="downloadGifBtn" class="btn btn--icon btn--accent" style="display:none;"
+              title="Generate and Download GIF" aria-label="Generate and Download GIF">
+              <div class="loading-spinner"></div>
+            </button>
+            <button id="downloadVideoBtn" class="btn btn--icon btn--accent" style="display:none;"
+              title="Generate and Download Video" aria-label="Generate and Download Video">
+              <div class="loading-spinner"></div>
+            </button>
+          </div>
+        </div>
+        <div id="gifExportContent" class="export-content active">
+          <div class="gif-settings" style="display: none;">
+            <label for="transparentBg">Background</label>
+            <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+              <div class="color-input-group-bg" id="bgColorGroup">
+                <label for="bgColorPicker" class="sr-only">Background Color</label>
+                <input type="color" id="bgColorPicker" value="#000000">
+                <label for="bgHexInput" class="sr-only">Background Hex</label>
+                <input type="text" id="bgHexInput" value="#000000">
+              </div>
+              <label class="switch" title="Toggle Transparent Background">
+                <input type="checkbox" id="transparentBg">
+                <span class="slider"></span>
+              </label>
+              <span class="sr-only">Transparent Background Toggle</span>
+            </div>
+          </div>
+
+          <div class="gif-settings">
+            <label for="gifScale">Resolution Scale</label>
+            <div class="custom-dropdown-container" id="gifScaleContainer">
+              <input type="hidden" id="gifScale" value="1">
+
+              <button type="button" id="gifScaleTrigger" class="custom-dropdown-trigger">
+                <span class="trigger-text">1x (Default)</span>
+                <svg class="dropdown-arrow" width="10" height="6" viewBox="0 0 10 6" fill="none">
+                  <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </button>
+
+              <div id="gifScaleOptions" class="custom-dropdown-options">
+              </div>
+            </div>
+          </div>
+
+          <div class="gif-settings">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label style="margin: 0; cursor: default;">Halo Color</label>
+              <span class="badge-experimental">EXPERIMENTAL</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+              <div class="color-input-group-bg" id="haloColorGroup">
+                <label for="haloColorPicker" class="sr-only">Halo Color</label>
+                <input type="color" id="haloColorPicker" value="#000000">
+                <label for="haloHexInput" class="sr-only">Halo Hex</label>
+                <input type="text" id="haloHexInput" value="#000000">
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <div id="videoExportContent" class="export-content" style="display: none;">
+          <div class="gif-settings">
+            <label>Resolution Scale</label>
+            <div id="videoScaleControls" class="segmented-control">
+              <button type="button" data-value="0.5">0.5x</button>
+              <button type="button" data-value="1" class="active">1x</button>
+              <button type="button" data-value="1.5">1.5x</button>
+              <button type="button" data-value="2">2x</button>
+            </div>
+          </div>
+          <div class="gif-settings">
+            <label>Frame Rate (FPS)</label>
+            <div id="videoFpsControls" class="segmented-control">
+              <button type="button" data-value="24">24</button>
+              <button type="button" data-value="30" class="active">30</button>
+              <button type="button" data-value="60">60</button>
+            </div>
+          </div>
+          <div class="gif-settings" style="display: none;">
+            <label for="videoTransparentBg">Background</label>
+            <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+              <div class="color-input-group-bg" id="videoBgColorGroup" style="display: none;">
+                <label for="videoBgColorPicker" class="sr-only">Background Color</label>
+                <input type="color" id="videoBgColorPicker" value="#000000">
+                <label for="videoBgHexInput" class="sr-only">Background Hex</label>
+                <input type="text" id="videoBgHexInput" value="#000000">
+              </div>
+              <label class="switch" title="Toggle Solid Background">
+                <input type="checkbox" id="videoTransparentBg">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer style="text-align: center; padding: 20px; color: #888; font-size: 14px; opacity: 0;">
+        Lottiemon Editor
+      </footer>
+
+    </div>
+  </div>
+  <div id="gifContainer"></div>
+
+
+
+
+
+  <div class="overlay" id="renderSettingsOverlay">
+
+    <div class="overlay-content">
+      <button class="overlay-close" aria-label="Close GIF Settings">&times;</button>
+      <h3>Advanced GIF Settings</h3>
+
+      <div class="setting-row">
+        <label for="keyColor">Transparency Key Color (for GIF):</label>
+        <div class="controls">
+          <input type="color" id="keyColor" value="#000000">
+          <input type="text" id="keyHex" value="#000000">
+        </div>
+        <small>Color to treat as transparent (use near-black if Lottie uses pure black).</small>
+      </div>
+
+      <div class="setting-row">
+        <label for="replaceColor">Replacement Color:</label>
+        <div class="controls">
+          <input type="color" id="replaceColor" value="#010101">
+          <input type="text" id="replaceHex" value="#010101">
+        </div>
+        <small>Color to replace the Key Color with before rendering.</small>
+      </div>
+
+      <button id="saveGifSettingsBtn" class="btn btn--primary" style="margin-top: var(--spacing-md);">Save
+        Settings</button>
+
+    </div>
+  </div>
+
+  <div class="overlay" id="customOverlay">
+    <button class="overlay-close" aria-label="Close Editor Overlay"><img src="css/close.svg">
+      <span style="margin-bottom: 1px;">Cancel</span> </button>
+    <button id="saveAndCloseBtn" class="overlay-close" aria-label="Save and Close Crop Editor">
+      <img src="assets/save.svg"> <span style="margin-bottom: 1px;">Save & Close</span>
+    </button>
+    <div class="overlay-content">
+
+      <iframe id="customContent" title="Lottie Animation Editor Overlay"></iframe>
+    </div>
+  </div>
+
+  <div id="coffeeRoastOverlay" class="coffeeRoast-hidden">
+
+    <iframe id="freshBrewFrame" src="" frameborder="0"></iframe>
+  </div>
+
+  <div id="shareModalOverlay" class="overlay">
+    <div class="share-modal-panel">
+      <div class="share-modal-header">
+        <h3>Generate Your Shareable URL</h3>
+        <button id="closeShareModalBtn" class="overlay-close" title="Close" style="position: static; transform: none;">
+          <img src="closeblack.svg">
+        </button>
+      </div>
+
+      <div id="shareModalContent" class="share-modal-body">
+      </div>
+
+      <div class="share-modal-footer">
+        <button id="generateShareCodeBtn" class="btn btn--primary">Generate Code</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="maximizePreviewOverlay" class="overlay">
+    <div class="maximize-preview-panel">
+      <div class="maximize-preview-header">
+        <button id="closeMaximizePreviewBtn" class="overlay-close" title="Close"
+          style="position: static; transform: none;">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" />
+          </svg>
+        </button>
+      </div>
+      <div id="lottiePreviewMaximized" class="checkerboard">
+      </div>
+      <div class="maximize-player-controls">
+        <button id="maxPlayPauseBtn" class="control-button" aria-label="Pause">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+          </svg>
+        </button>
+        <input type="range" id="maxSeekbar" value="0" min="0" step="1" aria-label="Animation progress">
+      </div>
+    </div>
+  </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+
+
+  <script type="module" src="js/index.js" defer></script>
+
+
+
+</body>
+
+</html>

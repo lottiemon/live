@@ -1,0 +1,982 @@
+body {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+  font-family: 'Hanken Grotesk', sans-serif;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #f5f5f5;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+h1 {
+  margin-bottom: 16px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Animation preview + main play */
+#preview-wrapper {
+  position: relative;
+  background: #f5f5f5;
+  border-radius: 32px;
+  background-image: linear-gradient(45deg, #e0e0e0 25%, transparent 25%),
+    linear-gradient(-45deg, #e0e0e0 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #e0e0e0 75%),
+    linear-gradient(-45deg, transparent 75%, #e0e0e0 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+}
+
+#animation-container {
+  width: 100%;
+  height: 400px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 3rem;
+}
+
+.main-play-btn {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  z-index: 5;
+  padding: 6px 12px;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+#globalBar {
+  position: relative;
+  height: 8px;
+  background: #ddd;
+  border-radius: 4px;
+  margin-top: 8px;
+  width: 100%;
+  flex: 1;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+}
+
+button {
+  padding: 8px 16px;
+  background: #4CAF50;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+#segmentsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.segment-control {
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 4px;
+  display: flex;
+  gap: 8px;
+}
+
+.segment-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+}
+
+.frame-input {
+  background-color: #f5f5f5 !important;
+}
+
+.segment-name {
+  padding: 4px 8px;
+  font-size: 14px;
+  width: 80px;
+}
+
+.frame-input {
+  width: 70px;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.play-btn,
+.download-btn {
+  height: 2rem;
+  width: 2rem;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.download-btn {
+  background: #007bff;
+  color: #fff;
+}
+
+.range-container {
+  position: relative;
+  height: 24px;
+  box-sizing: border-box;
+  padding: 0 7px;
+}
+
+.range-highlight {
+  position: absolute;
+  top: 10px;
+  height: 4px;
+  border-radius: 2px;
+  border-left: 2px solid;
+  border-right: 2px solid;
+  z-index: 1;
+}
+
+.range-input {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 16px;
+  background: transparent;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  top: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.range-input::-webkit-slider-runnable-track {
+  background: transparent;
+}
+
+.range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: all;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #007bff;
+  border: none;
+  cursor: pointer;
+  margin-top: -6px;
+  z-index: 3;
+}
+
+.range-input::-moz-range-track {
+  background: transparent;
+}
+
+.range-input::-moz-range-thumb {
+  pointer-events: all;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #007bff;
+  border: none;
+  cursor: pointer;
+  margin-top: 0;
+  z-index: 3;
+}
+
+.close-btn {
+  position: absolute;
+  top: -24px;
+  right: -24px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #eee;
+  color: #555;
+  font-size: 16px;
+  line-height: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  z-index: 5;
+
+  /* --- SVG Background Styles --- */
+  background-image: url('deleteblack.svg');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 18px 18px;
+
+  display: block;
+  /* CHANGED: Set to block to show on all cards */
+}
+
+.close-btn:hover {
+  background-color: #e0588c;
+  color: #222;
+}
+
+/* Only show the close button for the first (active) segment */
+
+
+#status {
+  font-style: italic;
+  color: #666;
+}
+
+#error {
+  color: #f44336;
+}
+
+/* some ui improvements */
+
+
+/* make each segment row a flex container */
+.segment-control {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-radius: 24px;
+  padding: 20px;
+  background: #fff;
+  position: relative;
+  /* Needed for the overlay */
+}
+
+
+/* left “info” column: name above the two frame numbers */
+
+/* stack start/end inputs vertically */
+.segment-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+}
+
+.frame-inputs {
+  display: flex;
+
+  gap: 2px;
+
+}
+
+
+/* the slider handles take up the remaining horizontal space */
+.segment-handles {
+  flex: 1;
+}
+
+/* right-side actions (Play / Download) stacked vertically */
+.segment-actions {
+  display: flex;
+
+  gap: 10px;
+  margin-left: 16px;
+}
+
+/* segment input stylings*/
+
+.segment-name,
+.frame-input {
+  height: 20px;
+  background: none;
+  border: none;
+  /* light gray border */
+  border-radius: 999px;
+  /* pill-shaped corners */
+  padding: 4px 14px;
+  /* a bit of breathing room */
+  transition: border-color 0.2s ease,
+    /* smooth color change */
+    box-shadow 0.2s ease;
+  /* smooth shadow on focus */
+}
+
+
+.frame-input::-webkit-outer-spin-button,
+.frame-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.frame-input {
+  -moz-appearance: textfield;
+}
+
+/* hover state */
+.segment-name:hover,
+.frame-input:hover {
+  background: #fff;
+  border-color: #888;
+  /* darken border on hover */
+}
+
+/* focus state */
+.segment-name:focus,
+.frame-input:focus {
+  outline: none;
+  /* remove default outline */
+  border-color: #007bff;
+  /* blue border on focus */
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.frame-input {
+  width: 30px;
+  background: #fff;
+  margin-right: 8px;
+}
+
+.segment-frames {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.segment-info {
+  width: 140px;
+}
+
+
+
+/*Segment handles*/
+/* 1) full‐length dull track behind everything */
+.range-container::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  /* track thickness */
+  background: #ddd;
+  /* dull color */
+  border-radius: 3px;
+  transform: translateY(-50%);
+  z-index: 0;
+}
+
+/* 2) highlight bar perfectly centered */
+.range-highlight {
+  position: absolute;
+  top: 50%;
+  height: 6px;
+  /* match track thickness */
+  transform: translateY(-50%);
+  z-index: 1;
+  border: none;
+  /* remove side borders if you like */
+  border-radius: 3px;
+}
+
+/* 3) make the two thumbs into vertical pills */
+.range-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  z-index: 2;
+}
+
+/* WebKit pill‐style thumb */
+.range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  /* Slightly wider */
+  height: 24px;
+  margin-top: 0px;
+  /* Adjust as needed based on track height */
+  border-radius: 7px;
+  /* More rounded pill */
+  background: #007bff;
+  border: 2px solid #ffffff;
+  /* Slightly darker border */
+  cursor: pointer;
+  z-index: 3;
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  /* Add transitions */
+
+}
+
+.range-input:hover::-webkit-slider-thumb {
+  background-color: #0056b3;
+  /* Darken on hover */
+
+}
+
+.range-input:active::-webkit-slider-thumb {
+  transform: scale(1.1);
+  /* Slightly enlarge */
+  background-color: #004085;
+  /* Even darker */
+}
+
+/* Firefox pill‐style thumb */
+.range-input::-moz-range-thumb {
+  width: 14px;
+  /* Slightly wider */
+  height: 24px;
+  border-radius: 7px;
+  /* More rounded pill */
+  background: #007bff;
+  border: 2px solid #ffffff;
+  /* Slightly darker border */
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  /* Add transitions */
+
+}
+
+.range-input:hover::-moz-range-thumb {
+  background-color: #0056b3;
+  /* Darken on hover */
+
+}
+
+.range-input:active::-moz-range-thumb {
+  transform: scale(1.1);
+  /* Slightly enlarge */
+  background-color: #004085;
+  /* Even darker */
+}
+
+/* hide the default track */
+.range-input::-webkit-slider-runnable-track,
+.range-input::-moz-range-track {
+  background: transparent;
+}
+
+
+body .container #fullControl {
+  flex-direction: row;
+  padding-top: 24px;
+  padding-bottom: 24px;
+  box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.03);
+  border-radius: 0 0 32px 32px;
+
+  background: #ffffff;
+}
+
+/* seek control*/
+.segment-handles {
+  flex: 1;
+  /* fill the gap */
+  position: relative;
+  /* positioning context */
+  margin: 0;
+  /* optional side‐padding */
+}
+
+/* position the bar dead‐center inside .segment-handles */
+.segment-handles #globalBar {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  /* your track thickness */
+  margin: 0;
+  transform: translateY(-50%);
+}
+
+/* layer the scrubber on top, same footprint */
+#fullSeek {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  /* at least thumb‐height */
+  transform: translateY(-50%);
+  background: transparent;
+  pointer-events: all;
+  z-index: 2;
+  /* above the bar */
+}
+
+/* hide the native track and style the thumb */
+#fullSeek::-webkit-slider-runnable-track,
+#fullSeek::-moz-range-track {
+  background: transparent;
+}
+
+#fullSeek::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -3px;
+  /* center on 6px bar */
+  border-radius: 50%;
+  background: #007bff;
+  border: 2px solid #fff;
+  cursor: pointer;
+  z-index: 3;
+}
+
+#fullSeek::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #007bff;
+  border: 2px solid #fff;
+  cursor: pointer;
+  transform: translateY(-3px);
+  z-index: 3;
+}
+
+/* 1) Remove any default track styling */
+#fullSeek {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+/* 2) Hide the track */
+#fullSeek::-webkit-slider-runnable-track,
+#fullSeek::-moz-range-track {
+  height: 0;
+  background: transparent;
+}
+
+/* 3) Style only the thumb as a circle */
+#fullSeek::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #007bff;
+  border: 2px solid #fff;
+  margin-top: -4px;
+  /* vertically center over 6px bar */
+  cursor: pointer;
+}
+
+#fullSeek::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #007bff;
+  border: 2px solid #fff;
+  transform: translateY(-4px);
+  cursor: pointer;
+}
+
+.segment-handles #globalBar {
+
+
+  box-sizing: border-box;
+}
+
+/* 2) tooltip styling */
+.seek-tooltip {
+  position: absolute;
+  top: -2.3rem;
+  /* float above the bar */
+  transform: translateX(-73%);
+  padding: 4px 6px;
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  pointer-events: none;
+  white-space: nowrap;
+  display: none;
+  z-index: 4;
+}
+
+.seek-tooltip {
+  /* start invisible & smoothly transition opacity */
+  opacity: 0;
+  transition: opacity 300ms ease-out;
+}
+
+/* aligning seek thumb perfectly */
+
+/* 1) Make sure the input still spans the full width and is centered over the bar */
+.segment-handles #fullSeek {
+  left: -10px;
+  /* negative half-thumb width */
+  width: calc(100% + 20px);
+  /* full + thumb width */
+}
+
+
+/* 2) vertically center a 20px thumb over an 8px bar */
+#fullSeek::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  /* Slightly larger */
+  height: 20px;
+  margin-top: -5px;
+  /* Re-center based on new size and 6px bar */
+  border-radius: 50%;
+  /* Keep circular */
+  background: #007bff;
+  border: 2px solid #ffffff;
+  /* White border for contrast */
+  cursor: pointer;
+  z-index: 3;
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  /* Add transitions */
+
+}
+
+#fullSeek::-moz-range-thumb {
+  width: 20px;
+  /* Slightly larger */
+  height: 20px;
+  border-radius: 50%;
+  /* Keep circular */
+  background: #007bff;
+  border: 2px solid #ffffff;
+  /* White border for contrast */
+  cursor: pointer;
+  transform: translateY(-5px);
+  /* Re-center based on new size and 6px bar */
+  z-index: 3;
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  /* Add transitions */
+
+}
+
+/* Hover effect for main seekbar thumb */
+#fullSeek:hover::-webkit-slider-thumb {
+  background-color: #0056b3;
+  /* Darken */
+
+}
+
+#fullSeek:hover::-moz-range-thumb {
+  background-color: #0056b3;
+  /* Darken */
+
+}
+
+/* Active/Dragging effect for main seekbar thumb */
+#fullSeek:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+  /* Enlarge more */
+  background-color: #004085;
+  /* Even darker */
+}
+
+#fullSeek:active::-moz-range-thumb {
+  /* Need to combine transforms */
+  transform: translateY(-6px) scale(1.15);
+  /* Enlarge more */
+  background-color: #004085;
+  /* Even darker */
+}
+
+
+
+/* play pause dynamic */
+
+.play-btn,
+#mainPlay {
+  /* size to your SVG, hide any text */
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  border: none;
+  color: transparent;
+  cursor: pointer;
+}
+
+/* default = play icon */
+.play-btn,
+#mainPlay {
+  background-image: url('play.svg');
+  width: 32px;
+  height: 32px;
+  background-size: 24px 24px;
+}
+
+/* when paused (i.e. playing state), show pause icon */
+.play-btn.paused,
+#mainPlay.paused {
+  background-image: url('pause.svg');
+}
+
+
+
+.download-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background-image: url('download.svg');
+  background-size: 26px 26px;
+  color: transparent;
+  /* hide any inner text */
+  background-repeat: no-repeat;
+  background-position: center;
+
+}
+
+#addSegment {
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-weight: bold;
+  background-color: transparent;
+  /* No background fill */
+  color: #888888;
+  /* Greyish text color */
+  border: 2px dashed #cccccc;
+  /* Greyish dotted border */
+  padding: 10px 16px;
+  /* Adjust padding for comfortable clicking */
+  border-radius: 10px;
+  /* Slightly rounded corners */
+  cursor: pointer;
+  font-weight: 500;
+  /* Slightly bolder text */
+  text-align: center;
+  /* Center the text */
+  width: 60%;
+  /* Make the button take full available width */
+  margin: auto;
+  /* Add some space above the button */
+  box-sizing: border-box;
+  /* Include padding and border in the element's total width and height */
+  /* Smooth transitions for hover effects */
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+/* Hover effect (only when the button is NOT disabled) */
+#addSegment:hover:not(:disabled) {
+  background-color: rgba(0, 123, 255, 0.05);
+  /* Very light blueish background tint */
+  color: #007bff;
+  /* Blueish text color */
+  border-color: #007bff;
+  /* Blueish border color */
+}
+
+/* Style for when the button is disabled */
+#addSegment:disabled {
+  background-color: transparent;
+  /* Keep background transparent */
+  color: #bbbbbb;
+  /* Lighter grey text when disabled */
+  border-color: #dddddd;
+  /* Lighter grey border when disabled */
+  cursor: not-allowed;
+  /* Indicate it's not clickable */
+}
+
+/* --- NEW OVERLAY STYLES --- */
+.segment-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(20, 20, 20, 0.85);
+  /* Dark semi-transparent */
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 24px;
+  /* Match parent's border-radius */
+  cursor: pointer;
+  z-index: 10;
+  opacity: 0;
+  visibility: hidden;
+  /* Hide from accessibility tree when not visible */
+  transition: opacity 0.3s ease, backdrop-filter 0.3s ease;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  /* For Safari */
+}
+
+.segment-control:hover .segment-overlay {
+  opacity: 0;
+  /* Show on hover */
+  background: rgba(255, 255, 255, 0.75);
+  /* Semi-transparent white */
+  visibility: visible;
+  color: #1d1d1f;
+  pointer-events: none;
+  /* Dark text for contrast */
+}
+
+/* --- NEW: Style for the always-visible locked overlay --- */
+.segment-overlay.locked {
+  opacity: 1;
+  visibility: visible;
+  cursor: not-allowed;
+}
+
+/* --- NEW: Animation for adding a segment --- */
+.new-segment-enter {
+  opacity: 0;
+  transform: translateY(-30px);
+}
+
+.segment-control {
+  /* Add transition for the entrance animation */
+  transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+}
+
+/* --- NEW: Blink animation for newly activated segment --- */
+.segment-control.is-blinking::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(59, 130, 246, 0.4);
+  /* Semi-transparent blue */
+  border-radius: 24px;
+  /* Match parent */
+  pointer-events: none;
+  z-index: 15;
+  animation: blink-effect 0.8s ease-in-out;
+}
+
+@keyframes blink-effect {
+  0% {
+    opacity: 0;
+  }
+
+  25% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+
+  75% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+.segment-overlay {
+  opacity: 0;
+  /* Hidden by default */
+
+  /* Can't be clicked when invisible */
+  transition: opacity 0.2s ease-in-out;
+  /* Ensure it covers the whole area */
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(240, 242, 245, 0.85);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #555;
+  border-radius: 12px;
+  z-index: 10;
+}
+
+/* Show the overlay when hovering the HANDLES div, but NOT if it's locked */
+.segment-handles:hover~.segment-overlay:not(.locked) {
+  opacity: 0;
+  pointer-events: none;
+  /* Make it clickable again when visible */
+}
+
+/* The locked overlay should always be visible */
+.segment-overlay.locked {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+
+.promote-btn {
+  position: absolute;
+  top: -24px;
+  left: -24px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #eee;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.3s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+  z-index: 20;
+  /* Higher than overlay (10) */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.promote-btn:hover {
+  background-color: #007bff;
+  /* Blue on hover */
+  color: #fff;
+}
+
+.promote-btn svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 3;
+  /* Make icon slightly bolder */
+}
+
+/* Hide promote button on the first (active) segment */
+.segment-control.is-first .promote-btn {
+  /* We keep it 'flex' so it can animate, but hide it visually */
+  display: flex;
+
+  /* Animate out: Fade out and shrink down */
+  opacity: 0;
+  transform: scale(0.5);
+
+  /* Prevent clicking while hidden */
+  pointer-events: none;
+}

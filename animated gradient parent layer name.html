@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lottie Animated Gradient Detector</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom styles for file input */
+        .file-input-label {
+            transition: all 0.2s ease-in-out;
+        }
+        .file-input-label:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen">
+
+    <div class="bg-white w-full max-w-2xl mx-4 p-6 sm:p-8 rounded-2xl shadow-lg">
+        <header class="text-center mb-6">
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Lottie Animated Gradient Detector</h1>
+            <p class="text-gray-500 mt-2">Upload your Lottie JSON file to find layers with animated gradients.</p>
+        </header>
+
+        <main>
+            <!-- File Input Section -->
+            <div class="mb-6">
+                <label for="lottieFile" class="file-input-label w-full flex items-center justify-center px-4 py-6 bg-white text-blue-500 rounded-lg border-2 border-dashed border-blue-300 cursor-pointer hover:bg-blue-50 hover:border-blue-500">
+                    <svg class="w-8 h-8 mr-3" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <path d="M16.88 9.1A4 4 0 0 1 16 17H5a5 5 0 0 1-1-9.9V7a3 3 0 0 1 4.52-2.59A4.98 4.98 0 0 1 17 8c0 .38-.04.74-.12 1.1zM11 11h3l-4 4-4-4h3V7h2v4z" />
+                    </svg>
+                    <span id="file-name" class="font-medium">Click to select a .json file</span>
+                </label>
+                <input type="file" id="lottieFile" class="hidden" accept=".json">
+            </div>
+
+            <!-- Results Section -->
+            <div id="results-container" class="hidden mt-6">
+                <h2 class="text-xl font-semibold text-gray-700 border-b pb-2 mb-4">Analysis Results</h2>
+                <div id="message" class="text-center p-4 rounded-lg"></div>
+                <ul id="layerList" class="list-disc list-inside space-y-2 text-gray-700">
+                    <!-- Layer names will be dynamically inserted here -->
+                </ul>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const lottieFileInput = document.getElementById('lottieFile');
+        const fileNameSpan = document.getElementById('file-name');
+        const resultsContainer = document.getElementById('results-container');
+        const layerList = document.getElementById('layerList');
+        const messageDiv = document.getElementById('message');
+
+        lottieFileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            // Update the file input label
+            fileNameSpan.textContent = `Selected: ${file.name}`;
+            
+            // Show the results container
+            resultsContainer.classList.remove('hidden');
+            layerList.innerHTML = ''; // Clear previous results
+            
+            // Show a processing message
+            showMessage('processing', 'Analyzing file...');
+
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                try {
+                    const lottieData = JSON.parse(e.target.result);
+                    const animatedGradientLayers = new Set(); // Use a Set to avoid duplicate names
+
+                    // Helper function to recursively check shapes and groups
+                    function recursivelyCheckShapes(shapes) {
+                        if (!shapes || !Array.isArray(shapes)) {
+                            return false;
+                        }
+
+                        for (const shape of shapes) {
+                            // Check for an animated gradient fill. The animation flag is in g.k.a
+                            if (shape.ty === 'gf' && shape.g && shape.g.k && shape.g.k.a === 1) {
+                                return true; // Found it
+                            }
+
+                            // If it's a group, check the items within it
+                            if (shape.ty === 'gr' && shape.it) {
+                                if (recursivelyCheckShapes(shape.it)) {
+                                    return true; // Found it inside a group
+                                }
+                            }
+                        }
+                        return false; // Did not find it in this level
+                    }
+
+                    // Main function to find animated gradients in layers
+                    function findAnimatedGradients(layers) {
+                        if (!layers || !Array.isArray(layers)) {
+                            return;
+                        }
+
+                        for (const layer of layers) {
+                            // Check shapes within the current layer
+                            if (layer.shapes && Array.isArray(layer.shapes)) {
+                                if (recursivelyCheckShapes(layer.shapes)) {
+                                     animatedGradientLayers.add(layer.nm || 'Unnamed Layer');
+                                }
+                            }
+                            
+                            // Recursively check for pre-composition layers
+                            if (layer.layers) {
+                                findAnimatedGradients(layer.layers);
+                            }
+                        }
+                    }
+
+                    findAnimatedGradients(lottieData.layers);
+                    
+                    displayResults(Array.from(animatedGradientLayers));
+
+                } catch (error) {
+                    console.error("Error parsing JSON file:", error);
+                    showMessage('error', 'Invalid Lottie JSON file. Please check the file and try again.');
+                }
+            };
+
+            reader.onerror = () => {
+                console.error("Error reading file");
+                showMessage('error', 'Could not read the selected file.');
+            };
+
+            reader.readAsText(file);
+        });
+
+        function displayResults(layers) {
+            layerList.innerHTML = ''; // Clear list before adding new items
+
+            if (layers.length > 0) {
+                showMessage('success', `Found ${layers.length} layer(s) with animated gradients:`);
+                layers.forEach(layerName => {
+                    const li = document.createElement('li');
+                    li.textContent = layerName;
+                    li.className = 'bg-green-50 p-2 rounded-md';
+                    layerList.appendChild(li);
+                });
+            } else {
+                showMessage('info', 'No layers with animated gradients were found in this file.');
+            }
+        }
+        
+        function showMessage(type, text) {
+            messageDiv.textContent = text;
+            messageDiv.className = 'text-center p-4 rounded-lg '; // Reset classes
+            
+            switch(type) {
+                case 'success':
+                    messageDiv.classList.add('bg-green-100', 'text-green-800');
+                    break;
+                case 'error':
+                    messageDiv.classList.add('bg-red-100', 'text-red-800');
+                    break;
+                case 'info':
+                    messageDiv.classList.add('bg-blue-100', 'text-blue-800');
+                    break;
+                case 'processing':
+                     messageDiv.classList.add('bg-yellow-100', 'text-yellow-800');
+                    break;
+            }
+        }
+    </script>
+</body>
+</html>
+
