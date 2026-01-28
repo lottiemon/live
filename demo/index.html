@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lottiemon - Features and Redirection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #f9fafb; /* Off-white background */
+            color: #374151;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        #container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        canvas {
+            display: block;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0; 
+        }
+        #loading-overlay {
+            position: absolute;
+            z-index: 50;
+            transition: opacity 0.4s ease;
+        }
+
+        /* Fun Bouncing Loader */
+        .fun-loader {
+            display: flex;
+            gap: 8px;
+        }
+        .dot {
+            width: 12px;
+            height: 12px;
+            background-color: #10b981; /* Emerald-500 */
+            border-radius: 50%;
+            animation: bounce 0.5s ease-in-out infinite alternate;
+        }
+        .dot:nth-child(2) { animation-delay: 0.1s; background-color: #34d399; }
+        .dot:nth-child(3) { animation-delay: 0.2s; background-color: #6ee7b7; }
+
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-15px); }
+        }
+
+        /* Slide-in CTA Pill */
+        #cta-pill {
+            position: fixed;
+            z-index: 100;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            
+            /* Visual Base Properties */
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.15);
+            
+            /* PREVENT GLIMPSE: Start fully hidden and non-interactive */
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            
+            /* Transition properties mapped to JS logic */
+            transition-property: right, top, bottom, transform, background-color, box-shadow, opacity, visibility;
+        }
+
+        #cta-pill.active-in-dom {
+            visibility: visible;
+        }
+
+        #cta-pill.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #cta-pill:hover {
+            filter: brightness(1.1);
+            transform: scale(1.05);
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.2);
+        }
+
+        #cta-pill:active {
+            transform: scale(0.95);
+        }
+
+        /* Highlight Animation: Slower Shockwave + Symmetric Scale Pop */
+        @keyframes pill-highlight-pulse {
+            0% { 
+                transform: scale(1); 
+                box-shadow: 0 0 0 0 var(--glow-start), 0 12px 30px -5px rgba(0, 0, 0, 0.15); 
+                /* Initial pop up easing */
+                animation-timing-function: cubic-bezier(0.1, 0.1, 0.1, 1);
+            }
+            40% {
+                transform: scale(1.12);
+                /* Settle down easing requested: 0.6, 0, 0.2, 1 */
+                animation-timing-function: cubic-bezier(0.6, 0, 0.2, 1);
+            }
+            100% { 
+                transform: scale(1); 
+                box-shadow: 0 0 0 36px var(--glow-end), 0 12px 30px -5px rgba(0, 0, 0, 0.15); 
+            }
+        }
+
+        .highlight-trigger {
+            animation-name: pill-highlight-pulse;
+            animation-fill-mode: both;
+        }
+
+        /* Subtle Signature Footer */
+        #signature-footer {
+            position: absolute;
+            bottom: 24px;
+            left: 50%; 
+            transform-origin: center;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #94a3b8; 
+            font-size: 0.75rem;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 1s ease 0.5s, transform 0.2s ease, filter 0.2s ease;
+            pointer-events: auto; 
+            cursor: pointer;
+            user-select: none;
+        }
+
+        #signature-footer:hover {
+            filter: brightness(0.8);
+            transform: translateX(-50%) scale(1.05);
+        }
+
+        #signature-img {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background-color: #e2e8f0; 
+            object-fit: cover;
+            border: 1px solid #cbd5e1;
+            display: block;
+        }
+
+        #signature-prefix {
+            opacity: 0.8;
+        }
+
+        #signature-name {
+            color: #475569; 
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="container">
+        <!-- Loader -->
+        <div id="loading-overlay" class="flex flex-col items-center gap-8">
+            <div class="fun-loader">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+            <p class="text-slate-500 text-lg font-medium tracking-tight">Just a moment!</p>
+        </div>
+
+        <canvas id="lottie-canvas"></canvas>
+
+        <!-- CTA Pill Button -->
+        <button id="cta-pill">
+            <span id="cta-text">TRY LOTTIEMON</span>
+            <svg id="cta-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </button>
+
+        <!-- Signature Footer -->
+        <div id="signature-footer">
+            <span id="signature-prefix">By</span>
+            <img id="signature-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="">
+            <span id="signature-name">Ishant Periwal</span>
+        </div>
+    </div>
+
+    <script type="module">
+        import { DotLottie } from "https://cdn.jsdelivr.net/npm/@lottiefiles/dotlottie-web/+esm";
+
+        const CONFIG = {
+            dotLottieUrl: "https://github.com/lottiemon/lottiemonDemo/blob/c06465785e65fdc3713352adf6bd6002f43fb324/lottiemon_education.lottie", 
+            width: "900px",
+            height: "900px",
+            stateMachineId: "stateMachine",
+            
+            // --- TAB LOGO / FAVICON CONFIG ---
+            tabLogoSvg: `favicon.svg`,
+            
+            // --- CANVAS LAYOUT CONFIG ---
+            canvasVerticalOffset: "-8px", 
+
+            ctaMode: "auto", 
+            
+            ctaStyles: {
+                text: "TRY LOTTIEMON",
+                backgroundColor: "#10b981", 
+                textColor: "#ffffff",
+                fontSize: "0.8rem", 
+                borderRadius: "9999px",
+                width: "auto", 
+                height: "auto",
+                showIcon: true,
+                paddingX: "24px", 
+                paddingY: "12px", 
+                gap: "12px",     
+
+                animation: {
+                    pillTimeout: 15000,          
+                    
+                    // --- HIGHLIGHT LOOP CONFIG ---
+                    highlightInitialDelay: 5000, 
+                    highlightInterval: 3000,     
+                    highlightDuration: "1.2s",
+                    highlightOpacity: 0.5, 
+
+                    in: {
+                        duration: "0.32s",
+                        easing: [0.1, 0.1, 0.32, 1] 
+                    },
+                    out: {
+                        duration: "0.15s",
+                        easing: [0.4, 0, 0.2, 1] 
+                    },
+                    top: "40px",
+                    rightHidden: "-500px",
+                    rightOvershoot: "45px",
+                    rightVisible: "40px"
+                }
+            },
+
+            // --- SIGNATURE CONFIG ---
+            signature: {
+                show: true,
+                showImage: false,
+                prefix: "By",
+                name: "Ishant Periwal",
+                imageUrl: "me.jpg",
+                scale: 1.2,
+                profileUrl: "https://www.linkedin.com/in/ishant-periwal/"
+            }
+        };
+
+        const TARGET_STATES = [
+            'color change',
+            'assetSel',
+            'cropSel',
+            'SegmentSel',
+            'dowloadSel'
+        ];
+
+        const canvas = document.getElementById('lottie-canvas');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const ctaPill = document.getElementById('cta-pill');
+        const ctaText = document.getElementById('cta-text');
+        const ctaIcon = document.getElementById('cta-icon');
+        const sigFooter = document.getElementById('signature-footer');
+        const sigPrefix = document.getElementById('signature-prefix');
+        const sigName = document.getElementById('signature-name');
+        const sigImg = document.getElementById('signature-img');
+
+        let dotLottie = null;
+        let reachedStates = new Set();
+        let pillVisible = false;
+        let pillTimerId = null;
+        let highlightDelayId = null; 
+        let highlightLoopId = null;  
+
+        function setupFavicon() {
+            if (!CONFIG.tabLogoSvg) return;
+            const link = document.querySelector("link[rel~='icon']") || document.createElement('link');
+            link.type = 'image/svg+xml';
+            link.rel = 'icon';
+            if (CONFIG.tabLogoSvg.startsWith('http') || CONFIG.tabLogoSvg.startsWith('data:')) {
+                link.href = CONFIG.tabLogoSvg;
+            } else if (CONFIG.tabLogoSvg.includes('<svg')) {
+                link.href = `data:image/svg+xml;base64,${btoa(CONFIG.tabLogoSvg)}`;
+            } else {
+                link.href = CONFIG.tabLogoSvg;
+            }
+            document.getElementsByTagName('head')[0].appendChild(link);
+        }
+
+        function applyAppConfiguration() {
+            setupFavicon();
+            const s = CONFIG.ctaStyles;
+            const anim = s.animation;
+
+            ctaPill.style.backgroundColor = s.backgroundColor;
+            ctaPill.style.color = s.textColor;
+            ctaPill.style.paddingLeft = s.paddingX;
+            ctaPill.style.paddingRight = s.paddingX;
+            ctaPill.style.paddingTop = s.paddingY;
+            ctaPill.style.paddingBottom = s.paddingY;
+            ctaPill.style.gap = s.gap;
+            ctaPill.style.fontSize = s.fontSize; 
+            ctaPill.style.borderRadius = s.borderRadius;
+            ctaPill.style.width = s.width;
+            ctaPill.style.height = s.height;
+            ctaText.textContent = s.text;
+            ctaIcon.style.display = s.showIcon ? 'block' : 'none';
+            ctaPill.style.top = anim.top;
+            ctaPill.style.right = anim.rightHidden;
+            
+            // Inject dynamic variables for CSS animation based on config
+            const opacity = anim.highlightOpacity || 0.5;
+            ctaPill.style.setProperty('--glow-start', `rgba(16, 185, 129, ${opacity})`);
+            ctaPill.style.setProperty('--glow-end', `rgba(16, 185, 129, 0)`);
+
+            if (s.backgroundColor !== "#10b981") {
+                ctaPill.style.boxShadow = `0 12px 30px -5px ${s.backgroundColor}66`;
+            }
+            ctaPill.classList.add('active-in-dom');
+            
+            if (CONFIG.signature.show) {
+                sigFooter.style.display = 'flex';
+                sigPrefix.textContent = CONFIG.signature.prefix;
+                sigName.textContent = CONFIG.signature.name;
+                sigImg.style.display = CONFIG.signature.showImage ? 'block' : 'none';
+                
+                const scaleVal = CONFIG.signature.scale || 1.0;
+                sigFooter.style.transform = `translateX(-50%) scale(${scaleVal})`;
+                
+                if (CONFIG.signature.showImage && CONFIG.signature.imageUrl) {
+                    sigImg.src = CONFIG.signature.imageUrl;
+                }
+            } else {
+                sigFooter.style.display = 'none';
+            }
+        }
+
+        function triggerPillHighlight() {
+            if (!pillVisible) return;
+            ctaPill.style.animationDuration = CONFIG.ctaStyles.animation.highlightDuration;
+            ctaPill.classList.remove('highlight-trigger');
+            void ctaPill.offsetWidth; 
+            ctaPill.classList.add('highlight-trigger');
+        }
+
+        function startHighlightLoop() {
+            if (highlightLoopId || highlightDelayId) return; 
+            const anim = CONFIG.ctaStyles.animation;
+            highlightDelayId = setTimeout(() => {
+                triggerPillHighlight();
+                highlightLoopId = setInterval(() => {
+                    if (pillVisible) {
+                        triggerPillHighlight();
+                    } else {
+                        stopHighlighting();
+                    }
+                }, anim.highlightInterval);
+                highlightDelayId = null;
+            }, anim.highlightInitialDelay);
+        }
+
+        function stopHighlighting() {
+            if (highlightLoopId) {
+                clearInterval(highlightLoopId);
+                highlightLoopId = null;
+            }
+            if (highlightDelayId) {
+                clearTimeout(highlightDelayId);
+                highlightDelayId = null;
+            }
+            ctaPill.classList.remove('highlight-trigger');
+        }
+
+        function setCTAVisibility(visible) {
+            const anim = CONFIG.ctaStyles.animation;
+            if (visible && pillTimerId) {
+                clearTimeout(pillTimerId);
+                pillTimerId = null;
+            }
+            if (visible === pillVisible) return;
+            pillVisible = visible;
+            
+            if (visible) {
+                ctaPill.classList.add('visible');
+                const easeIn = `cubic-bezier(${anim.in.easing.join(',')})`;
+                ctaPill.style.transition = `right ${anim.in.duration} ${easeIn}, opacity 0.2s ease, visibility 0s`;
+                ctaPill.style.right = anim.rightOvershoot;
+                const delay = parseFloat(anim.in.duration) * 1000;
+                setTimeout(() => {
+                    if (pillVisible) {
+                        const easeOut = `cubic-bezier(${anim.out.easing.join(',')})`;
+                        ctaPill.style.transition = `right ${anim.out.duration} ${easeOut}, opacity 0.2s ease, visibility 0s`;
+                        ctaPill.style.right = anim.rightVisible;
+                        startHighlightLoop();
+                    }
+                }, delay);
+            } else {
+                ctaPill.classList.remove('visible');
+                ctaPill.style.transition = `right 0.3s ease-in, opacity 0.3s ease, visibility 0.3s step-end`;
+                ctaPill.style.right = anim.rightHidden;
+                stopHighlighting();
+            }
+        }
+
+        function getRawGitHubUrl(url) {
+            if (!url) return url;
+            if (url.includes('github.com') && url.includes('/blob/')) {
+                return url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
+            }
+            return url;
+        }
+
+        function setupCanvasLayout() {
+            const dpr = window.devicePixelRatio || 1;
+            canvas.style.width = CONFIG.width;
+            canvas.style.height = CONFIG.height;
+            canvas.style.transform = `translateY(${CONFIG.canvasVerticalOffset || '0px'})`;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            return dpr;
+        }
+
+        async function playAnimation(inputUrl) {
+            const rawUrl = getRawGitHubUrl(inputUrl.trim());
+            loadingOverlay.classList.remove('hidden');
+            canvas.style.opacity = '0';
+            if (pillTimerId) clearTimeout(pillTimerId);
+            setCTAVisibility(false); 
+            reachedStates.clear();
+            const dpr = setupCanvasLayout();
+            try {
+                if (dotLottie) dotLottie.destroy();
+                dotLottie = new DotLottie({
+                    canvas: canvas,
+                    src: rawUrl,
+                    autoplay: true,
+                    loop: true,
+                    renderConfig: { devicePixelRatio: dpr }
+                });
+                dotLottie.addEventListener('load', () => {
+                    loadingOverlay.classList.add('hidden');
+                    canvas.style.opacity = '1';
+                    sigFooter.style.opacity = '1';
+                    if (CONFIG.ctaMode === 'always') {
+                        setCTAVisibility(true);
+                    } else if (CONFIG.ctaMode === 'auto') {
+                        pillTimerId = setTimeout(() => {
+                            if (!pillVisible) setCTAVisibility(true);
+                        }, CONFIG.ctaStyles.animation.pillTimeout);
+                    }
+                    try {
+                        dotLottie.stateMachineLoad(CONFIG.stateMachineId);
+                        dotLottie.addEventListener('stateMachineTransition', (event) => {
+                            const toState = (event.toState || "").trim();
+                            if (CONFIG.ctaMode === 'auto' && TARGET_STATES.includes(toState) && !reachedStates.has(toState)) {
+                                reachedStates.add(toState);
+                                if (reachedStates.size === TARGET_STATES.length) {
+                                    if (!pillVisible) {
+                                        setCTAVisibility(true);
+                                    } else {
+                                        triggerPillHighlight();
+                                    }
+                                }
+                            }
+                        });
+                        dotLottie.stateMachineStart();
+                    } catch (e) {
+                        console.warn("State machine issue:", e);
+                    }
+                });
+            } catch (err) {
+                console.error("Initialization Error:", err);
+            }
+        }
+
+        window.onload = () => {
+            applyAppConfiguration();
+            window.addEventListener('resize', () => {
+                if(dotLottie) {
+                    setupCanvasLayout();
+                    dotLottie.resize(); 
+                }
+            });
+            if (CONFIG.dotLottieUrl) playAnimation(CONFIG.dotLottieUrl);
+        };
+
+        ctaPill.addEventListener('click', () => {
+            window.location.href = "https://lottiemon.com";
+        });
+
+        // Click handler for signature footer - now opening in a new tab
+        sigFooter.addEventListener('click', () => {
+            if (CONFIG.signature.profileUrl) {
+                window.open(CONFIG.signature.profileUrl, '_blank');
+            }
+        });
+    </script>
+</body>
+</html>
