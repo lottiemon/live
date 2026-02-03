@@ -55,10 +55,83 @@
     #editorScrollContent {
       padding-bottom: 600px;
     }
+
+    /* Mobile Warning Overlay Styles */
+    #mobile-warning-overlay {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 9999;
+      background-color: #f9fafb;
+      /* bg-gray-50 */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+      font-family: 'Inter', sans-serif;
+    }
+
+    @media (min-width: 640px) {
+      #mobile-warning-overlay {
+        display: none !important;
+      }
+    }
+
+    .warning-icon-container {
+      width: 4rem;
+      height: 4rem;
+      background-color: #d1fae5;
+      /* bg-emerald-100 */
+      color: #059669;
+      /* text-emerald-600 */
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .warning-title {
+      font-size: 1.5rem;
+      line-height: 2rem;
+      font-weight: 700;
+      color: #111827;
+      /* text-gray-900 */
+      margin-bottom: 0.5rem;
+      margin-top: 0;
+    }
+
+    .warning-text {
+      color: #4b5563;
+      /* text-gray-600 */
+      max-width: 28rem;
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.5;
+    }
   </style>
 </head>
 
 <body style="overflow: auto; height: auto; min-height: 100vh;">
+
+  <div id="mobile-warning-overlay">
+    <div class="warning-icon-container">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect width="20" height="14" x="2" y="3" rx="2" />
+        <line x1="8" x2="16" y1="21" y2="21" />
+        <line x1="12" x2="12" y1="17" y2="21" />
+      </svg>
+    </div>
+    <h2 class="warning-title">Desktop Required</h2>
+    <p class="warning-text">
+      Lottiemon is optimized for desktop and laptop use. Please open this page on a larger screen.
+    </p>
+  </div>
 
   <div id="allChipsOverlay" class="all-chips-overlay-backdrop" style="display: none;">
     <div class="all-chips-overlay-panel">
