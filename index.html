@@ -81,19 +81,14 @@
       }
     }
 
-    .warning-icon-container {
-      width: 4rem;
-      height: 4rem;
-      background-color: #d1fae5;
-      /* bg-emerald-100 */
-      color: #059669;
-      /* text-emerald-600 */
-      border-radius: 9999px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .warning-image {
+      width: 12rem;
+      /* w-48 */
       margin-bottom: 1.5rem;
+      /* mb-6 */
     }
+
+
 
     .warning-title {
       font-size: 1.5rem;
@@ -119,14 +114,7 @@
 <body style="overflow: auto; height: auto; min-height: 100vh;">
 
   <div id="mobile-warning-overlay">
-    <div class="warning-icon-container">
-      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect width="20" height="14" x="2" y="3" rx="2" />
-        <line x1="8" x2="16" y1="21" y2="21" />
-        <line x1="12" x2="12" y1="17" y2="21" />
-      </svg>
-    </div>
+    <img src="assets/desktop only.png" alt="Desktop Required" class="warning-image">
     <h2 class="warning-title">Desktop Required</h2>
     <p class="warning-text">
       Lottiemon is optimized for desktop and laptop use. Please open this page on a larger screen.
