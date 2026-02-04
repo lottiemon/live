@@ -27,7 +27,7 @@
             justify-content: center;
             align-items: center;
             width: 100vw;
-            height: 100vh;
+            height: 100dvh;
             position: relative;
         }
 
@@ -527,7 +527,7 @@
 
             const isMobile = window.innerWidth < 640;
             // Calculate offset based on target top percent (deviation from 50% center)
-            const mobileOffset = (CONFIG.mobileCanvasTargetTopPercent - 50) + "vh";
+            const mobileOffset = (CONFIG.mobileCanvasTargetTopPercent - 50) + "dvh";
             const offset = isMobile ? mobileOffset : CONFIG.canvasVerticalOffset;
             canvas.style.transform = `translateY(${offset || '0px'})`;
 
