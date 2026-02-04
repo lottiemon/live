@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=1024">
   <title>Lottiemon | Quick & Free Lottie Editor</title>
 
   <meta name="title" content="Lottiemon | Quick & Free Lottie Editor">
@@ -55,71 +55,12 @@
     #editorScrollContent {
       padding-bottom: 600px;
     }
-
-    /* Mobile Warning Overlay Styles */
-    #mobile-warning-overlay {
-      position: fixed;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      z-index: 9999;
-      background-color: #f9fafb;
-      /* bg-gray-50 */
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-      text-align: center;
-      font-family: 'Inter', sans-serif;
-    }
-
-    @media (min-width: 640px) {
-      #mobile-warning-overlay {
-        display: none !important;
-      }
-    }
-
-    .warning-image {
-      width: 12rem;
-      /* w-48 */
-      margin-bottom: 1.5rem;
-      /* mb-6 */
-    }
-
-
-
-    .warning-title {
-      font-size: 1.5rem;
-      line-height: 2rem;
-      font-weight: 700;
-      color: #111827;
-      /* text-gray-900 */
-      margin-bottom: 0.5rem;
-      margin-top: 0;
-    }
-
-    .warning-text {
-      color: #4b5563;
-      /* text-gray-600 */
-      max-width: 28rem;
-      margin: 0;
-      font-size: 1rem;
-      line-height: 1.5;
-    }
   </style>
 </head>
 
 <body style="overflow: auto; height: auto; min-height: 100vh;">
 
-  <div id="mobile-warning-overlay">
-    <img src="assets/desktop only.png" alt="Desktop Required" class="warning-image">
-    <h2 class="warning-title">Desktop Required</h2>
-    <p class="warning-text">
-      Lottiemon is optimized for desktop and laptop use. Please open this page on a larger screen.
-    </p>
-  </div>
+
 
   <div id="allChipsOverlay" class="all-chips-overlay-backdrop" style="display: none;">
     <div class="all-chips-overlay-panel">
