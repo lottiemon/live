@@ -304,7 +304,7 @@
 
             // --- CANVAS LAYOUT CONFIG ---
             canvasVerticalOffset: "-8px",
-            mobileCanvasVerticalOffset: "-10px",
+            mobileCanvasTargetTopPercent: 45,
 
             ctaMode: "auto",
 
@@ -526,7 +526,9 @@
             canvas.style.height = CONFIG.height;
 
             const isMobile = window.innerWidth < 640;
-            const offset = isMobile ? CONFIG.mobileCanvasVerticalOffset : CONFIG.canvasVerticalOffset;
+            // Calculate offset based on target top percent (deviation from 50% center)
+            const mobileOffset = (CONFIG.mobileCanvasTargetTopPercent - 50) + "vh";
+            const offset = isMobile ? mobileOffset : CONFIG.canvasVerticalOffset;
             canvas.style.transform = `translateY(${offset || '0px'})`;
 
             const rect = canvas.getBoundingClientRect();
