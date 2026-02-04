@@ -108,7 +108,7 @@
         .dot {
             width: 12px;
             height: 12px;
-            background-color: #10b981;
+            background-color: #2A9484;
             /* Emerald-500 */
             border-radius: 50%;
             animation: bounce 0.5s ease-in-out infinite alternate;
@@ -252,12 +252,167 @@
             color: #475569;
             font-weight: 600;
         }
+
+        .test-download-btn {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            z-index: 60;
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            background-color: transparent;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 999px;
+            color: #64748b;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease, opacity 0.5s ease, transform 0.5s ease;
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            transform: translateY(-10px);
+            pointer-events: none;
+        }
+
+        .test-download-btn.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .test-download-btn:hover {
+            border-color: rgba(0, 0, 0, 0.2);
+            color: #334155;
+            background-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .test-download-btn svg {
+            width: 14px;
+            height: 14px;
+            margin-right: 8px;
+            stroke-width: 2;
+        }
+
+        /* Download Modal Styles */
+        #download-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        #download-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: white;
+            padding: 32px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            max-width: 90%;
+            width: 400px;
+            text-align: center;
+            transform: scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        #download-overlay.visible .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 12px;
+        }
+
+        .modal-text {
+            color: #64748b;
+            margin-bottom: 24px;
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+
+        .modal-icon {
+            width: 180px;
+            height: auto;
+            margin-bottom: 24px;
+            opacity: 1;
+            margin-left: 0;
+        }
+
+        .modal-cta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            background: #2A9484;
+            color: white;
+            border-radius: 99px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .modal-cta .arrow {
+            width: 1.25em;
+            height: 1.25em;
+            margin-left: 6px;
+            margin-bottom: 0;
+            stroke-width: 2.5;
+        }
+
+        .modal-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(42, 148, 132, 0.4);
+        }
+
+        .modal-secondary-cta {
+            margin-top: 16px;
+            color: #94a3b8;
+            font-size: 1rem;
+            /* Larger text */
+            font-weight: 500;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .modal-secondary-cta:hover {
+            color: #64748b;
+            text-decoration: underline;
+        }
     </style>
 </head>
 
 <body>
 
     <div id="container">
+        <!-- Test Download Button -->
+        <a href="https://raw.githubusercontent.com/lottiemon/lottiemonDemo/0bfdb24e5dbc2392155213eb0738ab3fbc0cbf9e/Test%20Lottiemon.json"
+            class="test-download-btn" target="_blank" download="Test Lottiemon.json">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+            Download a Test Lottie File
+        </a>
 
         <!-- Loader -->
         <div id="loading-overlay" class="flex flex-col items-center gap-8">
@@ -268,8 +423,23 @@
             </div>
             <p class="text-slate-500 text-lg font-medium tracking-tight">Just a moment!</p>
         </div>
+        <!-- Download Success Overlay -->
+        <div id="download-overlay">
+            <div class="modal-box flex flex-col items-center">
+                <img src="../assets/test file downloaded.png" class="modal-icon" alt="Download Success">
+                <h3 class="modal-title">Test File Downloaded</h3>
+                <p class="modal-text">You can use the downloaded lottie file to test lottiemon. Simply upload it and you
+                    are good to go!</p>
+                <button class="modal-cta">Test Lottiemon Now <svg class="arrow" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
+                    </svg></button>
+                <button class="modal-secondary-cta">Dismiss</button>
+            </div>
+        </div>
 
-        <canvas id="lottie-canvas"></canvas>
+        <!-- Canvas -->
+        <canvas id="canvas"></canvas>
 
         <!-- CTA Pill Button -->
         <button id="cta-pill">
@@ -306,11 +476,14 @@
             canvasVerticalOffset: "-8px",
             mobileCanvasTargetTopPercent: 45,
 
+            // --- MODAL CONFIG ---
+            modalIconWidth: "175px",
+
             ctaMode: "auto",
 
             ctaStyles: {
                 text: "TRY LOTTIEMON",
-                backgroundColor: "#10b981",
+                backgroundColor: "#2A9484",
                 textColor: "#ffffff",
                 fontSize: "0.8rem",
                 borderRadius: "9999px",
@@ -420,10 +593,10 @@
 
             // Inject dynamic variables for CSS animation based on config
             const opacity = anim.highlightOpacity || 0.5;
-            ctaPill.style.setProperty('--glow-start', `rgba(16, 185, 129, ${opacity})`);
-            ctaPill.style.setProperty('--glow-end', `rgba(16, 185, 129, 0)`);
+            ctaPill.style.setProperty('--glow-start', `rgba(42, 148, 132, ${opacity})`);
+            ctaPill.style.setProperty('--glow-end', `rgba(42, 148, 132, 0)`);
 
-            if (s.backgroundColor !== "#10b981") {
+            if (s.backgroundColor !== "#2A9484") {
                 ctaPill.style.boxShadow = `0 12px 30px -5px ${s.backgroundColor}66`;
             }
             ctaPill.classList.add('active-in-dom');
@@ -482,6 +655,7 @@
         }
 
         function setCTAVisibility(visible) {
+            const downloadBtn = document.querySelector('.test-download-btn');
             const anim = CONFIG.ctaStyles.animation;
             if (visible && pillTimerId) {
                 clearTimeout(pillTimerId);
@@ -491,6 +665,7 @@
             pillVisible = visible;
 
             if (visible) {
+                if (downloadBtn) downloadBtn.classList.add('visible');
                 ctaPill.classList.add('visible');
                 const easeIn = `cubic-bezier(${anim.in.easing.join(',')})`;
                 ctaPill.style.transition = `right ${anim.in.duration} ${easeIn}, opacity 0.2s ease, visibility 0s`;
@@ -505,6 +680,7 @@
                     }
                 }, delay);
             } else {
+                if (downloadBtn) downloadBtn.classList.remove('visible');
                 ctaPill.classList.remove('visible');
                 ctaPill.style.transition = `right 0.3s ease-in, opacity 0.3s ease, visibility 0.3s step-end`;
                 ctaPill.style.right = anim.rightHidden;
@@ -521,6 +697,16 @@
         }
 
         function setupCanvasLayout() {
+            const canvas = document.getElementById('canvas');
+            const icon = document.querySelector('.modal-icon');
+
+            // Apply modal icon config
+            if (icon && CONFIG.modalIconWidth) {
+                icon.style.width = CONFIG.modalIconWidth;
+            }
+
+            if (!canvas) return 1;
+
             const dpr = window.devicePixelRatio || 1;
             canvas.style.width = CONFIG.width;
             canvas.style.height = CONFIG.height;
@@ -539,8 +725,10 @@
 
         async function playAnimation(inputUrl) {
             const rawUrl = getRawGitHubUrl(inputUrl.trim());
+            const canvas = document.getElementById('canvas');
+
             loadingOverlay.classList.remove('hidden');
-            canvas.style.opacity = '0';
+            if (canvas) canvas.style.opacity = '0';
             if (pillTimerId) clearTimeout(pillTimerId);
             setCTAVisibility(false);
             reachedStates.clear();
@@ -615,6 +803,75 @@
         sigFooter.addEventListener('click', () => {
             if (CONFIG.signature.profileUrl) {
                 window.open(CONFIG.signature.profileUrl, '_blank');
+            }
+        });
+
+        // --- DOWNLOAD & MODAL LOGIC ---
+        const downloadBtn = document.querySelector('.test-download-btn');
+        const downloadOverlay = document.getElementById('download-overlay');
+        const modalCta = document.querySelector('.modal-cta');
+
+        if (downloadBtn) {
+            downloadBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const url = downloadBtn.href;
+                const originalText = downloadBtn.innerText;
+
+                // Feedback
+                downloadBtn.innerText = "Downloading...";
+                downloadBtn.style.opacity = "0.7";
+                downloadBtn.style.pointerEvents = "none";
+
+                try {
+                    const response = await fetch(url);
+                    const blob = await response.blob();
+                    const blobUrl = window.URL.createObjectURL(blob);
+
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = blobUrl;
+                    a.download = 'Test Lottiemon.json';
+                    document.body.appendChild(a);
+                    a.click();
+
+                    // Cleanup
+                    setTimeout(() => {
+                        window.URL.revokeObjectURL(blobUrl);
+                        document.body.removeChild(a);
+                    }, 100);
+
+                    // Show Modal
+                    downloadOverlay.classList.add('visible');
+
+                } catch (err) {
+                    console.error('Download failed:', err);
+                    alert('Download failed. Please try again.');
+                } finally {
+                    downloadBtn.innerText = originalText;
+                    downloadBtn.style.opacity = "1";
+                    downloadBtn.style.pointerEvents = "auto";
+                }
+            });
+        }
+
+        // Close modal and navigate
+        modalCta.addEventListener('click', () => {
+            // Navigate to main app (root)
+            window.location.href = "../index.html";
+        });
+
+        // Close on dismiss
+        const dismissBtn = document.querySelector('.modal-secondary-cta');
+        if (dismissBtn) {
+            dismissBtn.addEventListener('click', () => {
+                downloadOverlay.classList.remove('visible');
+            });
+        }
+
+        // Close on backdrop click
+        downloadOverlay.addEventListener('click', (e) => {
+            if (e.target === downloadOverlay) {
+                downloadOverlay.classList.remove('visible');
             }
         });
     </script>
