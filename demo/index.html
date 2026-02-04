@@ -184,6 +184,8 @@
             pointer-events: auto;
             cursor: pointer;
             user-select: none;
+            z-index: 60;
+            transform: translateX(-50%);
         }
 
         #signature-footer:hover {
@@ -261,6 +263,7 @@
 
             // --- CANVAS LAYOUT CONFIG ---
             canvasVerticalOffset: "-8px",
+            mobileCanvasVerticalOffset: "-0px",
 
             ctaMode: "auto",
 
@@ -480,7 +483,11 @@
             const dpr = window.devicePixelRatio || 1;
             canvas.style.width = CONFIG.width;
             canvas.style.height = CONFIG.height;
-            canvas.style.transform = `translateY(${CONFIG.canvasVerticalOffset || '0px'})`;
+
+            const isMobile = window.innerWidth < 640;
+            const offset = isMobile ? CONFIG.mobileCanvasVerticalOffset : CONFIG.canvasVerticalOffset;
+            canvas.style.transform = `translateY(${offset || '0px'})`;
+
             const rect = canvas.getBoundingClientRect();
             canvas.width = rect.width * dpr;
             canvas.height = rect.height * dpr;
