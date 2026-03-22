@@ -170,8 +170,7 @@ body::-webkit-scrollbar {
 
 /* Class to trigger the animation out for the wrapper */
 #uploadButtonWrapper.animate-out {
-  transform: scaleY(0);
-  transform: translateY(-30px);
+  transform: translateY(-30px) scaleY(0);
   opacity: 0;
   pointer-events: none;
   /* Prevent interaction after faded out */
@@ -387,6 +386,21 @@ body::-webkit-scrollbar {
     transform 450ms cubic-bezier(0.1, 0.1, 0.2, 1),
     opacity 450ms cubic-bezier(0.1, 0.1, 0.2, 1);
   margin-top: 80px;
+  visibility: hidden;
+  pointer-events: none;
+  will-change: transform, opacity;
+  transform-origin: center top;
+}
+
+#mainContent.is-mounted {
+  display: flex;
+}
+
+#mainContent.is-visible {
+  transform: scale(1);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 /* --- Buttons --- */
@@ -3121,7 +3135,6 @@ svg {
   transition: all 0.2s ease;
   padding: 0 10px;
   padding-left: 7px;
-  display: none;
 }
 
 .window-share-btn:hover {
