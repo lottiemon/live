@@ -6,8 +6,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lottiemon | Quick & Free Lottie Editor</title>
   <style>
+    /* Landing fade-in: the header and upload area start invisible and fade in
+       together once startup completes (revealReadyLanding() removes
+       .landing-pending). visibility:hidden keeps them out of the tab order
+       while pending; the opacity transition produces the fade on reveal.
+       #startupStatus is intentionally NOT part of the fade so the 30s
+       "taking longer" fallback message stays visible on a stalled load. */
+    #uploadWrapper, #top-bar { transition: opacity 400ms ease; }
     html.landing-pending #uploadWrapper,
-    html.landing-pending #top-bar { visibility: hidden; pointer-events: none; }
+    html.landing-pending #top-bar { visibility: hidden; opacity: 0; pointer-events: none; }
     #startupStatus { display: none; }
     html.landing-pending #startupStatus {
       display: block; position: fixed; inset: 45% 16px auto;
@@ -89,7 +96,7 @@
 </head>
 
 <body style="overflow: auto; height: auto; min-height: 100vh;">
-  <p id="startupStatus" role="status">Loading Lottiemon…</p>
+  <p id="startupStatus" role="status"></p>
 
   <div id="allChipsOverlay" class="all-chips-overlay-backdrop" style="display: none;">
     <div class="all-chips-overlay-panel">
