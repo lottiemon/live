@@ -13,6 +13,12 @@
        #startupStatus is intentionally NOT part of the fade so the 30s
        "taking longer" fallback message stays visible on a stalled load. */
     #uploadWrapper, #top-bar { transition: opacity 400ms ease; }
+    #recentFiles { opacity: 0; visibility: hidden; pointer-events: none; transform: translate(-50%, 20px); }
+    html.editor-styles-ready:not(.landing-pending) #recentFiles.is-ready { opacity: 1; visibility: visible; pointer-events: auto; transform: translate(-50%, 0); }
+    @media (prefers-reduced-motion: reduce) { #recentFiles { transition: none; } .home-credit { transition: none !important; } }
+    html.landing-pending .home-credit,
+    html:not(.editor-styles-ready) .home-credit,
+    html:not(.footer-font-ready) .home-credit { visibility: hidden; opacity: 0; pointer-events: none; }
     html.landing-pending #uploadWrapper,
     html.landing-pending #top-bar { visibility: hidden; opacity: 0; pointer-events: none; }
     #startupStatus { display: none; }
@@ -33,13 +39,18 @@
     // Start requests while the HTML is still being parsed. The early animation
     // bootstrap consumes these promises, avoiding a second JSON request.
     window.landingAnimationData = {};
-    for (const path of ['upload.json', 'buyme.json']) {
-      window.landingAnimationData[path] = fetch(path, { priority: 'high' })
-        .then(response => {
-          if (!response.ok) throw new Error('Animation request failed');
-          return response.json();
-        }).catch(() => null);
+    const requestAnimation = (path, priority) => fetch(path, { priority })
+      .then(response => {
+        if (!response.ok) throw new Error('Animation request failed');
+        return response.json();
+      }).catch(() => null);
+    // Only the frames a visitor can actually see stand in front of the paint:
+    // the idle animation and the image the catch pose draws. The mouth sprites
+    // follow in the background.
+    for (const path of ['upload-idle.json', 'upload-catch.json', 'buyme.json']) {
+      window.landingAnimationData[path] = requestAnimation(path, 'high');
     }
+    window.landingAnimationData['upload-rest.json'] = requestAnimation('upload-rest.json', 'low');
   </script>
 
   <meta name="title" content="Lottiemon | Quick & Free Lottie Editor">
@@ -67,8 +78,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" href="css/landing.css">
+  <!-- Full stylesheet loads without blocking the landing paint. -->
+  <link rel="stylesheet" href="css/index.css" media="print" onload="this.media='all'; requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.add('editor-styles-ready'))); this.onload=null;">
+  <noscript><link rel="stylesheet" href="css/index.css"></noscript>
   <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js" as="script" fetchpriority="high">
+  <!-- Low priority so it never competes with what the first paint waits on. -->
+  <link rel="modulepreload" href="js/index.js" fetchpriority="low">
   <script>
     (function () {
       // Check for any of your "external load" parameters
@@ -177,16 +193,24 @@
       Placing your Lottie on the Postcard</h2>
   </div>
 
-  <div id="uploadWrapper">
     <footer class="home-credit" aria-label="About the creator">
       <a href="https://ishantp.com" target="_blank" rel="noopener noreferrer">Tool Built by Ishant</a>
-      <a class="home-social" href="https://www.linkedin.com/in/ishant-periwal" target="_blank" rel="noopener noreferrer" aria-label="Ishant on LinkedIn">
-        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146Zm4.943 12.248V6.169H2.542v7.225h2.401ZM3.743 5.182c.837 0 1.358-.554 1.358-1.248-.015-.709-.521-1.248-1.342-1.248-.822 0-1.359.54-1.359 1.248 0 .694.521 1.248 1.327 1.248h.016Zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193V6.169H6.25c.03.678 0 7.225 0 7.225h2.401Z"/></svg>
+      <a class="home-social" href="https://www.linkedin.com/in/ishant-periwal" target="_blank"
+        rel="noopener noreferrer" aria-label="Ishant on LinkedIn">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+          <path
+            d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146Zm4.943 12.248V6.169H2.542v7.225h2.401ZM3.743 5.182c.837 0 1.358-.554 1.358-1.248-.015-.709-.521-1.248-1.342-1.248-.822 0-1.359.54-1.359 1.248 0 .694.521 1.248 1.327 1.248h.016Zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193V6.169H6.25c.03.678 0 7.225 0 7.225h2.401Z" />
+        </svg>
       </a>
-      <a class="home-social" href="https://x.com/periwal_ishant" target="_blank" rel="noopener noreferrer" aria-label="Ishant on X">
-        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12.6.75h2.454L9.694 6.877 16 15.25h-4.937l-3.867-5.057-4.425 5.057H.316l5.733-6.554L0 .75h5.063l3.495 4.623L12.601.75Zm-.86 13.025h1.36L4.323 2.147H2.865L11.74 13.775Z"/></svg>
+      <a class="home-social" href="https://x.com/periwal_ishant" target="_blank" rel="noopener noreferrer"
+        aria-label="Ishant on X">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+          <path
+            d="M12.6.75h2.454L9.694 6.877 16 15.25h-4.937l-3.867-5.057-4.425 5.057H.316l5.733-6.554L0 .75h5.063l3.495 4.623L12.601.75Zm-.86 13.025h1.36L4.323 2.147H2.865L11.74 13.775Z" />
+        </svg>
       </a>
     </footer>
+  <div id="uploadWrapper">
     <div id="uploadButtonWrapper" class="upload-choice-group">
       <button id="pasteJsonButton" class="paste-json-button" type="button" title="Paste JSON code" aria-label="Paste JSON code">
         <svg class="paste-json-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -202,7 +226,13 @@
         <span>Choose a Lottie</span>
       </button>
     </div>
-    <div>
+    <div id="uploadProgressWrapper" class="upload-progress-wrapper" hidden role="progressbar" aria-valuemin="0"
+      aria-valuemax="100" aria-valuenow="0" aria-label="Loading animation">
+      <div class="upload-progress-track">
+        <div id="uploadProgressBar" class="upload-progress-bar" style="width: 0%;"></div>
+      </div>
+    </div>
+    <div hidden>
       <label for="multipleFileInput" id="uploadMultipleLabel" class="btn btn--secondary">Choose Multiple Lottie
         JSONs</label>
     </div>
@@ -210,13 +240,38 @@
       <div class="chat-bubble" id="randomTextContainer">Feed me a lottie!</div>
       <div id="dragDropLottie"></div>
     </div>
-
-    <section id="recentFiles" class="recent-files" aria-labelledby="recentFilesHeading" hidden>
-      <h2 id="recentFilesHeading">Recently opened files</h2>
-      <div id="recentFilesList" class="recent-files-list"></div>
-    </section>
-
   </div>
+
+  <div id="recentDrawerOverlay" class="recent-drawer-overlay" hidden></div>
+  <aside id="recentFiles" class="recent-drawer" hidden aria-label="Recently edited files">
+    <button id="recentDrawerHandle" class="recent-drawer-handle" type="button" aria-expanded="false" aria-controls="recentDrawerBody">
+      <span class="recent-drawer-handle-left">
+        <svg class="recent-drawer-history-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" />
+          <path d="M12 7v5l4 2" />
+        </svg>
+        <span class="recent-drawer-title"><span class="recent-drawer-title-count">0</span><span
+            class="recent-drawer-title-label">Recently edited files</span></span>
+      </span>
+      <span class="recent-drawer-chevron-circle" aria-hidden="true">
+        <svg class="recent-drawer-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="m18 15-6-6-6 6" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+    </button>
+    <div id="recentDrawerBody" class="recent-drawer-body">
+      <button id="recentCarouselPrev" class="recent-carousel-arrow recent-carousel-prev" type="button" aria-label="Scroll left" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div id="recentFilesList" class="recent-files-list"></div>
+      <button id="recentCarouselNext" class="recent-carousel-arrow recent-carousel-next" type="button" aria-label="Scroll right" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button id="recentShowMoreBtn" class="recent-show-more-btn" type="button" hidden>Show more</button>
+    </div>
+  </aside>
 
   <p id="recentSaveStatus" role="status" aria-live="polite"></p>
 
@@ -374,7 +429,7 @@
 
 
         <div id="emptyStateDiv">
-          <img src="nocolor.png" alt="No colors detected">
+          <img data-src="nocolor.png" alt="No colors detected" decoding="async">
         </div>
       </div>
       <div class="editor-gradient-overlay-top"></div>
@@ -642,12 +697,9 @@
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
   <script src="js/landingAnimations.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
 
 
-  <script type="module" src="js/index.js" defer></script>
+  <script type="module" src="js/landing.js"></script>
 
 
 

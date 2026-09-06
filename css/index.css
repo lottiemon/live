@@ -1,8 +1,9 @@
 :root {
   --font-family-base: 'Inter', sans-serif;
-  --color-primary: #4CAF50;
-  /* Green */
-  --color-primary-dark: #45a049;
+  --font-family: 'Inter', sans-serif;
+  --color-primary: #2A9484;
+  /* Accent Green */
+  --color-primary-dark: #1B7769;
   --color-secondary: #2196F3;
   /* Blue */
   --color-secondary-dark: #1e88e5;
@@ -64,6 +65,13 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
 }
 
 body {
@@ -197,12 +205,15 @@ body::-webkit-scrollbar {
   border-radius: 999px;
   background: #2A9484;
   color: var(--color-text-on-primary);
-  font: 500 1rem/1 var(--font-family);
+  font: 500 1rem/1 var(--font-family-base);
   cursor: pointer;
   box-shadow: var(--shadow-sm);
   animation: none;
   transform: none;
-  transition: flex-grow 200ms ease, background-color 180ms ease;
+  transition: flex-grow 360ms cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 180ms ease,
+              transform 150ms ease,
+              box-shadow 150ms ease;
 }
 
 /* "Paste a JSON" is the expanded default; "Choose a Lottie" sits collapsed
@@ -224,7 +235,9 @@ body::-webkit-scrollbar {
   stroke-width: 1.7;
   stroke-linecap: round;
   stroke-linejoin: round;
-  transition: width 200ms ease, flex-basis 200ms ease, opacity 120ms ease;
+  transition: width 340ms cubic-bezier(0.16, 1, 0.3, 1),
+              flex-basis 340ms cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Both labels collapse the same way; the expanded one is chosen below. */
@@ -234,7 +247,8 @@ body::-webkit-scrollbar {
   opacity: 0;
   white-space: nowrap;
   overflow: hidden;
-  transition: max-width 200ms ease, opacity 120ms ease;
+  transition: max-width 360ms cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Default: Paste JSON code expanded - label only, icon collapsed away. */
@@ -248,28 +262,35 @@ body::-webkit-scrollbar {
   opacity: 0;
 }
 
-/* Hovering or focusing Choose a Lottie swaps which one is expanded. */
-#uploadButtonWrapper:has(#uploadLabel:hover, #uploadLabel:focus-visible) #uploadLabel {
+/* Expanded state for Browse files: controlled via JS (with delayed collapse and precedence)
+   or CSS fallback */
+#uploadButtonWrapper.active-browse #uploadLabel,
+#uploadButtonWrapper:not(.js-hover-controlled):has(#uploadLabel:hover, #uploadLabel:focus-visible) #uploadLabel {
   flex-grow: 1;
 }
-#uploadButtonWrapper:has(#uploadLabel:hover, #uploadLabel:focus-visible) #uploadLabel span {
+#uploadButtonWrapper.active-browse #uploadLabel span,
+#uploadButtonWrapper:not(.js-hover-controlled):has(#uploadLabel:hover, #uploadLabel:focus-visible) #uploadLabel span {
   max-width: 160px;
   opacity: 1;
 }
-#uploadButtonWrapper:has(#uploadLabel:hover, #uploadLabel:focus-visible) #uploadLabel .upload-choice-icon {
+#uploadButtonWrapper.active-browse #uploadLabel .upload-choice-icon,
+#uploadButtonWrapper:not(.js-hover-controlled):has(#uploadLabel:hover, #uploadLabel:focus-visible) #uploadLabel .upload-choice-icon {
   width: 0;
   flex-basis: 0;
   opacity: 0;
 }
-#uploadButtonWrapper:has(#uploadLabel:hover, #uploadLabel:focus-visible) .paste-json-button {
+#uploadButtonWrapper.active-browse .paste-json-button,
+#uploadButtonWrapper:not(.js-hover-controlled):has(#uploadLabel:hover, #uploadLabel:focus-visible) .paste-json-button {
   flex-grow: 0;
 }
-#uploadButtonWrapper:has(#uploadLabel:hover, #uploadLabel:focus-visible) .paste-json-button .paste-json-icon {
+#uploadButtonWrapper.active-browse .paste-json-button .paste-json-icon,
+#uploadButtonWrapper:not(.js-hover-controlled):has(#uploadLabel:hover, #uploadLabel:focus-visible) .paste-json-button .paste-json-icon {
   width: 20px;
   flex-basis: 20px;
   opacity: 1;
 }
-#uploadButtonWrapper:has(#uploadLabel:hover, #uploadLabel:focus-visible) .paste-json-button span {
+#uploadButtonWrapper.active-browse .paste-json-button span,
+#uploadButtonWrapper:not(.js-hover-controlled):has(#uploadLabel:hover, #uploadLabel:focus-visible) .paste-json-button span {
   max-width: 0;
   margin-left: 0;
   opacity: 0;
@@ -291,11 +312,83 @@ body::-webkit-scrollbar {
 }
 
 /* Class to trigger the animation out for the wrapper */
-#uploadButtonWrapper.animate-out {
-  transform: translateY(-30px) scaleY(0);
+#uploadButtonWrapper.animate-out,
+#uploadButtonWrapper[hidden] {
+  display: none !important;
+}
+
+/* Upload progress: the bar on its own, no frame and no readout. It stands in
+   for the upload buttons, so the wrapper keeps their height and centres the
+   track in it, leaving the rest of the landing where it was. */
+.upload-progress-wrapper {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  width: 242px;
+  max-width: calc(100vw - 32px);
+  height: 50px;
+  min-height: 50px;
+  padding: 0;
+  user-select: none;
+  animation: uploadProgressIn 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.upload-progress-wrapper[hidden] {
+  display: none !important;
+}
+
+.upload-progress-wrapper.animate-out {
+  transform: translateY(-10px) scale(0.96);
   opacity: 0;
   pointer-events: none;
-  /* Prevent interaction after faded out */
+}
+
+.upload-progress-track {
+  width: 100%;
+  height: 14px;
+  background: rgba(42, 148, 132, 0.16);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.upload-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #2A9484, #36b09e);
+  border-radius: 999px;
+  transition: width 160ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Waiting on the editor module, whose download progress cannot be read. A
+   travelling bar says "working" without inventing a percentage. */
+.upload-progress-wrapper.is-indeterminate .upload-progress-bar {
+  width: 40%;
+  transition: none;
+  animation: uploadProgressSlide 1400ms cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes uploadProgressSlide {
+  0% { transform: translateX(-115%); }
+  100% { transform: translateX(265%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .upload-progress-wrapper.is-indeterminate .upload-progress-bar {
+    animation-duration: 2600ms;
+  }
+}
+
+@keyframes uploadProgressIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 
@@ -304,31 +397,615 @@ body::-webkit-scrollbar {
   box-sizing: border-box;
   position: relative;
   width: min(100%, 560px);
-  padding: 100px 24px 110px;
+  /* Sits a little above centre at all times. The recent-files container is
+     fixed at the bottom and takes about 130px of screen; padding that out here
+     keeps the composition steady whether or not it is present, rather than
+     shifting the moment recents appear. */
+  padding: 100px 24px 240px;
   min-height: 100svh;
 }
+
+/* With no recents to fill the bottom of the screen, the credit sits there. */
+.home-credit {
+  position: fixed;
+  inset: auto 0 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #737373;
+  font-size: 13px;
+  font-weight: 500;
+  transition: opacity 280ms linear;
+}
+body:has(#uploadWrapper[style*="opacity: 0"]) .home-credit {
+  opacity: 0;
+  pointer-events: none;
+}
+body:has(#uploadWrapper[style*="display: none"]) .home-credit {
+  display: none;
+}
+body:has(.recent-drawer:not([hidden])) .home-credit {
+  display: none;
+}
+.home-credit a { color: inherit; text-decoration: none; }
+.home-credit a:hover { color: #313d36; }
+.home-credit a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; border-radius: 3px; }
+.home-social { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: 0 0 28px; }
+.home-social svg { display: block; width: 16px; height: 16px; flex-shrink: 0; }
+.home-social[aria-label="Ishant on X"] svg { width: 14px; height: 14px; }
 body:has(#uploadWrapper:not([style*="display: none"])) { min-height: 100svh; height: auto; width: 100%; box-sizing: border-box; overflow-x: clip; }
 html:has(#uploadWrapper:not([style*="display: none"])) { overflow-x: clip; }
 body:not(.has-open-animation) .window-container { display: none; }
-.recent-files { order: -2; width: 100%; max-width: 432px; margin-top: 12px; }
-.recent-files[hidden] { display: none; }
-.recent-files h2 { margin: 0 0 16px; font-size: 14px; font-weight: 500; color: var(--color-text-secondary); }
-.recent-files-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px 18px; }
-.recent-file { flex: 0 0 calc((100% - 36px) / 3); min-width: 0; border: 0; padding: 0; background: none; color: var(--color-text-primary); font: inherit; cursor: pointer; }
-.recent-preview { display: flex; align-items: center; justify-content: center; width: 100%; aspect-ratio: 1.35; box-sizing: border-box; padding: 12px; border: 1px solid var(--color-border); border-radius: 16px; background: #fff; overflow: hidden; font-size: 11px; }
-.recent-preview svg { display: block; width: 100%; height: 100%; }
-.recent-name { display: block; margin-top: 7px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
-.recent-file:hover .recent-preview { border-color: #2a9484; }
+/* --- Recent Files Bottom Peek Drawer --- */
+.recent-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 998;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.recent-drawer-overlay.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.recent-drawer-overlay[hidden] {
+  display: none !important;
+}
+
+.recent-drawer {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(94vw, 520px);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  background: #dfebe3;
+  border: 2px solid #d0ded5;
+  border-radius: 16px;
+  box-shadow: none;
+  transition: opacity 300ms ease, transform 380ms cubic-bezier(0.16, 1, 0.3, 1),
+              width 380ms cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 180ms ease,
+              border-color 180ms ease;
+  max-height: calc(85vh - 16px);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.recent-drawer[hidden] {
+  display: none !important;
+}
+/* Expanded states: open or initial peek */
+.recent-drawer.is-peeking,
+.recent-drawer.is-open {
+  width: min(95vw, 914px);
+  background: #ffffff;
+  border-color: #e2e8f0;
+  border-radius: 20px;
+  box-shadow: none;
+}
+
+/* Hide drawer completely when leaving landing screen */
+body.has-open-animation .recent-drawer,
+body.has-open-animation .recent-drawer-overlay,
+#uploadWrapper.animate-out ~ .recent-drawer,
+#uploadWrapper.animate-out ~ .recent-drawer-overlay {
+  display: none !important;
+}
+
+.recent-drawer:not(.is-open) {
+  cursor: pointer;
+}
+.recent-drawer:not(.is-open):hover {
+  background: #d9e7dd;
+  border-color: #b8cebf;
+}
+.recent-drawer.is-open {
+  cursor: default;
+}
+
+.recent-drawer-handle {
+  width: 100%;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 16px 0 20px;
+  border: 0;
+  border-radius: 14px 14px 0 0;
+  background: transparent;
+  color: var(--color-text-primary, #233b30);
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  -webkit-user-select: none;
+  border-bottom: none;
+  transition: background-color 150ms ease, border-color 200ms ease, height 300ms ease, padding 300ms ease;
+  box-sizing: border-box;
+}
+.recent-drawer.is-open .recent-drawer-handle,
+.recent-drawer.is-peeking .recent-drawer-handle {
+  height: auto;
+  min-height: auto;
+  padding: 12px 24px 16px;
+  border-radius: 18px 18px 0 0;
+  border-bottom: none;
+}
+.recent-drawer.is-open .recent-drawer-handle:hover {
+  background-color: transparent;
+}
+.recent-drawer-handle:focus-visible {
+  outline: 2px solid #2a9484;
+  outline-offset: -2px;
+}
+
+/* Collapsed header carries the history icon on its own; the wording only
+   appears once the container is open and there is room for it. */
+.recent-drawer-history-icon {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  display: none;
+  color: #365447;
+}
+.recent-drawer:not(.is-open):not(.is-peeking) .recent-drawer-history-icon {
+  display: block;
+}
+/* Collapsed: the icon stands in for the number, the wording stays. */
+.recent-drawer-title-count {
+  margin-right: 0.34em;
+}
+.recent-drawer:not(.is-open):not(.is-peeking) .recent-drawer-title-count {
+  display: none;
+}
+
+.recent-drawer-handle-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recent-drawer-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #365447;
+}
+.recent-drawer-count {
+  display: none !important;
+}
+
+.recent-drawer-chevron-circle {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  flex-shrink: 0;
+}
+
+.recent-drawer-chevron {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: #4d7566;
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1), color 150ms ease;
+}
+.recent-drawer.is-open .recent-drawer-chevron {
+  transform: rotate(180deg);
+}
+
+.recent-drawer-body {
+  position: relative;
+  width: 100%;
+  padding: 0 20px 14px;
+  box-sizing: border-box;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  max-height: calc(85vh - 52px);
+  transition: padding 340ms cubic-bezier(0.16, 1, 0.3, 1), gap 340ms ease;
+}
+.recent-drawer.is-open .recent-drawer-body,
+.recent-drawer.is-peeking .recent-drawer-body {
+  padding: 0 24px 24px;
+  align-items: stretch;
+  gap: 0;
+}
+
+.recent-files-list {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: gap 340ms ease;
+}
+.recent-drawer.is-open .recent-files-list,
+.recent-drawer.is-peeking .recent-files-list {
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  gap: 18px;
+  padding: 6px 4px 12px;
+}
+.recent-drawer.is-open .recent-files-list::-webkit-scrollbar,
+.recent-drawer.is-peeking .recent-files-list::-webkit-scrollbar {
+  display: none;
+}
+
+/* Scrollable edges fade out rather than cutting a card in half. The widths are
+   0 until the matching class is set, so the ends stay crisp when there is
+   nothing hidden in that direction. */
+.recent-files-list {
+  --recent-fade-left: 0px;
+  --recent-fade-right: 0px;
+}
+.recent-drawer.is-open .recent-files-list.can-scroll-left,
+.recent-drawer.is-peeking .recent-files-list.can-scroll-left {
+  --recent-fade-left: 64px;
+}
+.recent-drawer.is-open .recent-files-list.can-scroll-right,
+.recent-drawer.is-peeking .recent-files-list.can-scroll-right {
+  --recent-fade-right: 64px;
+}
+.recent-drawer.is-open .recent-files-list,
+.recent-drawer.is-peeking .recent-files-list {
+  -webkit-mask-image: linear-gradient(to right,
+      transparent 0,
+      #000 var(--recent-fade-left),
+      #000 calc(100% - var(--recent-fade-right)),
+      transparent 100%);
+  mask-image: linear-gradient(to right,
+      transparent 0,
+      #000 var(--recent-fade-left),
+      #000 calc(100% - var(--recent-fade-right)),
+      transparent 100%);
+}
+
+/* Collapsed strip: a count standing in for the cards that are not shown. */
+.recent-more-tile {
+  flex: 0 0 110px;
+  max-width: 110px;
+  width: 110px;
+  height: 56px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #d0ded5;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.55);
+  color: #365447;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+.recent-drawer.is-open .recent-more-tile,
+.recent-drawer.is-peeking .recent-more-tile {
+  display: none;
+}
+/* With the count tile present the strip shows three cards, not four. */
+.recent-drawer:not(.is-open):not(.is-peeking) .recent-files-list:has(.recent-more-tile) .recent-file:nth-child(n+4) {
+  display: none !important;
+}
+
+.recent-file {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--color-text-primary);
+  font: inherit;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: width 340ms cubic-bezier(0.16, 1, 0.3, 1),
+              max-width 340ms cubic-bezier(0.16, 1, 0.3, 1),
+              flex 340ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+/* Collapsed state: miniature cards, no direct selection, left aligned, up to 4 items */
+.recent-drawer:not(.is-open):not(.is-peeking) .recent-file {
+  flex: 0 0 110px;
+  max-width: 110px;
+  width: 110px;
+  pointer-events: none;
+  display: block !important;
+}
+/* Open / peeking state: 230px cards in single-row carousel */
+.recent-drawer.is-open .recent-file,
+.recent-drawer.is-peeking .recent-file {
+  flex: 0 0 230px;
+  max-width: 230px;
+  width: 230px;
+  min-width: 230px;
+  pointer-events: auto;
+  display: block !important;
+}
+
+/* In collapsed mode, hide 5th card and beyond */
+.recent-drawer:not(.is-open):not(.is-peeking) .recent-file:nth-child(n+5) {
+  display: none !important;
+}
+.recent-file.is-extra {
+  display: none;
+}
+.recent-drawer.is-open .recent-file.is-extra,
+.recent-drawer.is-peeking .recent-file.is-extra {
+  display: block !important;
+}
+
+/* Hide show-more button in carousel mode */
+.recent-show-more-btn {
+  display: none !important;
+}
+
+/* Carousel Navigation Arrows */
+.recent-carousel-arrow {
+  position: absolute;
+  /* The body adds 24px of bottom padding and the list 6px top / 12px bottom, so
+     the body's midpoint sits 15px below the card row's. Pull the arrows back up
+     onto the cards they scroll, then another 5px for optical alignment with
+     the preview area above the card footer. */
+  top: calc(50% - 20px);
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1.5px solid rgba(42, 148, 132, 0.22);
+  color: #244135;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 160ms ease, background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+.recent-carousel-arrow:hover {
+  background: #2a9484;
+  border-color: #2a9484;
+  color: #ffffff;
+  transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 6px 18px rgba(42, 148, 132, 0.32);
+}
+.recent-carousel-arrow:focus-visible {
+  outline: 2px solid #2a9484;
+  outline-offset: 2px;
+}
+.recent-carousel-arrow svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+.recent-carousel-prev {
+  left: 10px;
+}
+.recent-carousel-next {
+  right: 10px;
+}
+.recent-carousel-arrow[hidden],
+.recent-drawer:not(.is-open):not(.is-peeking) .recent-carousel-arrow {
+  display: none !important;
+}
+
+.recent-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+  background: #ffffff;
+  overflow: hidden;
+  font-size: 11px;
+  position: relative;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: height 340ms cubic-bezier(0.16, 1, 0.3, 1),
+              padding 340ms ease,
+              border-radius 340ms ease,
+              border-color 0.2s ease,
+              box-shadow 0.2s ease,
+              transform 0.2s ease;
+}
+/* Miniature preview tile in collapsed dock */
+.recent-drawer:not(.is-open):not(.is-peeking) .recent-preview {
+  height: 56px;
+  padding: 6px;
+  border-radius: 10px;
+}
+/* Full-size preview tile in expanded drawer */
+.recent-drawer.is-open .recent-preview,
+.recent-drawer.is-peeking .recent-preview {
+  height: auto;
+  aspect-ratio: 1.45;
+  padding: 10px;
+  border-radius: 16px;
+  border: 1.5px solid #edf2f7;
+}
+.recent-preview > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Hide labels in collapsed dock */
+.recent-drawer:not(.is-open):not(.is-peeking) .recent-card-footer {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+/* Hide download button in collapsed dock */
+.recent-drawer:not(.is-open):not(.is-peeking) .recent-download-btn {
+  display: none !important;
+}
+
+/* Bottom seamless whitish gradient footer containing file name & history timestamp */
+.recent-card-footer,
+.recent-card-header {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 24px 11px 7px;
+  background: linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(255, 255, 255, 0.94) 28%,
+    rgba(255, 255, 255, 0.82) 48%,
+    rgba(255, 255, 255, 0.58) 68%,
+    rgba(255, 255, 255, 0.28) 84%,
+    rgba(255, 255, 255, 0.08) 94%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
+  pointer-events: none;
+  box-sizing: border-box;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 250ms ease 120ms;
+}
+.recent-name {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #475569;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+  letter-spacing: -0.01em;
+  transition: color 150ms ease;
+}
+.recent-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 3.5px;
+  flex-shrink: 0;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: #64748b;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.recent-time svg,
+/* The digits sit optically high against the clock glyph, so drop them a touch
+   to line the pair up along the card's bottom edge. */
+.recent-time-text {
+  display: inline-block;
+  line-height: 1;
+  transform: translateY(1px);
+}
+.recent-time-icon {
+  width: 11px !important;
+  height: 11px !important;
+  max-width: 11px !important;
+  max-height: 11px !important;
+  color: #94a3b8;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.recent-download-btn {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  z-index: 3;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: #2a9484;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.85);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.15s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+.recent-download-btn:hover {
+  background: #217568;
+  transform: scale(1.08);
+}
+.recent-download-btn svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+/* Expanded cards carry a heavier hover edge; the collapsed strip is decorative
+   and keeps its hairline. */
+.recent-drawer.is-open .recent-file:hover .recent-preview,
+.recent-drawer.is-open .recent-file:focus-within .recent-preview,
+.recent-drawer.is-peeking .recent-file:hover .recent-preview,
+.recent-drawer.is-peeking .recent-file:focus-within .recent-preview {
+  border-width: 2.5px;
+}
+.recent-file:hover .recent-preview,
+.recent-file:focus-within .recent-preview {
+  border-color: #74b9af;
+  box-shadow: 0 4px 12px rgba(42, 148, 132, 0.09), 0 1px 3px rgba(0, 0, 0, 0.04);
+  transform: translateY(-1px);
+}
+.recent-file:hover .recent-name,
+.recent-file:focus-within .recent-name {
+  color: #1e293b;
+}
+.recent-file:hover .recent-download-btn,
+.recent-file:focus-within .recent-download-btn {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
 .recent-file:focus-visible { outline: 2px solid #1685ff; outline-offset: 5px; border-radius: 16px; }
 #recentSaveStatus { position: fixed; z-index: 10000; bottom: 10px; left: 50%; transform: translateX(-50%); max-width: min(90vw, 480px); margin: 0; padding: 8px 14px; border-radius: 8px; background: #fff; color: #8d352b; font-size: 12px; text-align: center; }
 #recentSaveStatus:empty { display: none; }
-@media (max-width: 480px) {
-  .recent-file { flex-basis: calc((100% - 18px) / 2); }
-  #uploadWrapper { padding-inline: 12px; }
+@media (max-width: 600px) {
+  .recent-drawer {
+    width: calc(100vw - 16px);
+    border-radius: 16px;
+  }
+  .recent-file {
+    flex: 0 0 calc((100% - 12px) / 2);
+    max-width: none;
+    min-width: 0;
+  }
+}
+@media (max-width: 380px) {
+  .recent-file {
+    flex: 0 0 100%;
+  }
 }
 #uploadWrapper {
   display: flex;
-  gap: var(--spacing-lg);
+  gap: 28px;
   flex-direction: column-reverse;
   margin: auto;
   justify-content: center;
@@ -341,24 +1018,6 @@ body:not(.has-open-animation) .window-container { display: none; }
   text-align: center;
   /* Center the label/button */
 }
-
-.home-credit {
-  position: absolute;
-  inset: auto 0 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  color: #737373;
-  font-size: 12px;
-  font-weight: 400;
-}
-.home-credit a { color: inherit; text-decoration: none; }
-.home-credit a:hover { color: #313d36; }
-.home-credit a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; border-radius: 3px; }
-.home-social { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: 0 0 28px; }
-.home-social svg { display: block; width: 16px; height: 16px; flex-shrink: 0; }
-.home-social[aria-label="Ishant on X"] svg { width: 14px; height: 14px; }
 
 
 .drag-drop-overlay {
@@ -430,6 +1089,11 @@ body:not(.has-open-animation) .window-container { display: none; }
 
   z-index: 1;
   /* To ensure the main bubble's border can visually sit correctly over the tail's connection */
+  transition: top 200ms ease;
+}
+
+.chat-bubble.is-two-line {
+  top: 2px;
 }
 
 /* Tail for the chat bubble */
@@ -576,6 +1240,7 @@ body:not(.has-open-animation) .window-container { display: none; }
 
 /* --- Buttons --- */
 .btn {
+  font-family: var(--font-family-base);
   padding: var(--spacing-sm) var(--spacing-md);
   border: none;
   border-radius: var(--border-radius-pill);
@@ -2452,22 +3117,37 @@ svg {
 
 .paste-json-overlay {
   z-index: 1002;
+  background: rgba(0, 0, 0, 0.48);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: opacity 220ms cubic-bezier(0.16, 1, 0.3, 1),
+              backdrop-filter 220ms cubic-bezier(0.16, 1, 0.3, 1),
+              pointer-events 0s linear 220ms;
+}
+
+.paste-json-overlay.active {
+  transition: opacity 220ms cubic-bezier(0.16, 1, 0.3, 1),
+              backdrop-filter 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .paste-json-panel {
   width: min(680px, calc(100% - 32px));
   background: var(--color-surface);
   border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.22), 0 0 1px rgba(0, 0, 0, 0.12);
   overflow: hidden;
-  transform: translateY(20px);
+  transform-origin: center center;
+  transform: scale(0.92);
   opacity: 0;
-  transition: transform 220ms ease, opacity 180ms ease;
+  transition: transform 200ms cubic-bezier(0.4, 0, 1, 1), opacity 180ms ease-in;
 }
 
 .paste-json-overlay.active .paste-json-panel {
-  transform: translateY(0);
+  transform: scale(1);
   opacity: 1;
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 240ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .paste-json-header {
@@ -2583,10 +3263,49 @@ svg {
   font: 13px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace;
 }
 
-#pasteJsonTextarea:focus { outline: 2px solid rgba(22, 133, 255, .35); outline-offset: 1px; }
+#pasteJsonTextarea:focus {
+  outline: 2px solid rgba(42, 148, 132, .4);
+  border-color: #2A9484;
+  outline-offset: 1px;
+}
 #pasteJsonTextarea.is-invalid { border-color: #d9534f; background: #fff5f4; }
 .paste-json-error { margin: 0 22px 8px; color: #bd2d29; font-size: .88rem; }
-.paste-json-footer { display: flex; justify-content: center; gap: 10px; padding: 14px 22px 20px; }
+.paste-json-footer {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 22px 20px;
+}
+
+.paste-json-footer .btn {
+  font-family: var(--font-family-base);
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 9px 22px;
+  border-radius: var(--border-radius-pill);
+}
+
+#cancelPasteJsonBtn {
+  background: #ebeeed;
+  color: #374151;
+  box-shadow: none;
+}
+
+#cancelPasteJsonBtn:hover {
+  background: #dfe3e0;
+  color: #111827;
+}
+
+#loadPastedJsonBtn {
+  background-color: #2A9484;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(42, 148, 132, 0.25);
+}
+
+#loadPastedJsonBtn:hover:not(:disabled) {
+  background-color: #1B7769;
+  box-shadow: 0 4px 10px rgba(42, 148, 132, 0.35);
+}
 
 .confirm-dialog-panel h3 {
   margin-top: 0;
@@ -3785,8 +4504,9 @@ svg {
   box-shadow: var(--shadow-sm);
 }
 
-#uploadMultipleLabel {
-  display: none;
+#uploadMultipleLabel,
+#uploadWrapper > div:has(#uploadMultipleLabel) {
+  display: none !important;
 }
 
 /* Optional: Style for the container if it needs more than inline styles */

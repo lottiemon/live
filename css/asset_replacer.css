@@ -80,6 +80,28 @@
        border-style: solid;
        background-color: rgba(59, 130, 246, 0.15);
     }
+    /* Hover cue: the thumbnail is click-to-upload but gave no visual signal.
+       Sits below the .asset-id-pill (z-index 10) so the format badge stays
+       readable. */
+    .preview-image-container::after {
+       content: '';
+       position: absolute;
+       inset: 0;
+       z-index: 5;
+       opacity: 0;
+       pointer-events: none;
+       background-color: rgba(0, 0, 0, 0.55);
+       background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 8 12 3 17 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>');
+       background-repeat: no-repeat;
+       background-position: center;
+       background-size: 28px 28px;
+       transition: opacity 0.2s ease;
+    }
+    .preview-image-container:hover::after,
+    .preview-image-container.drag-over::after { opacity: 1; }
+    @media (prefers-reduced-motion: reduce) {
+       .preview-image-container::after { transition: none; }
+    }
     .preview-image-max-height {
        max-width: 100%;
        max-height: 100%;
