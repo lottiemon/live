@@ -719,12 +719,12 @@ body.has-open-animation .recent-drawer-overlay,
               max-width 340ms cubic-bezier(0.16, 1, 0.3, 1),
               flex 340ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-/* Collapsed state: miniature cards, no direct selection, left aligned, up to 4 items */
+/* Collapsed state: directly accessible miniature cards, up to 4 items */
 .recent-drawer:not(.is-open):not(.is-peeking) .recent-file {
   flex: 0 0 110px;
   max-width: 110px;
   width: 110px;
-  pointer-events: none;
+  pointer-events: auto;
   display: block !important;
 }
 /* Open / peeking state: 230px cards in single-row carousel */
