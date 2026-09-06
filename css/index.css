@@ -1072,11 +1072,16 @@ body.has-open-animation .recent-drawer-overlay,
 
 /* Style for the realistic chat bubble */
 .chat-bubble {
+  white-space: pre-line;
+  min-width: 180px;
+  min-height: 20px;
+  line-height: 20px;
+  box-sizing: content-box;
   text-align: left;
   text-wrap: balance;
   position: absolute;
-  top: 10px;
-  /* Keep original positioning */
+  top: auto;
+  bottom: calc(100% - 66px);
   left: 10px;
   /* Keep original positioning */
   background-color: #F1EDD3;
@@ -1089,11 +1094,6 @@ body.has-open-animation .recent-drawer-overlay,
 
   z-index: 1;
   /* To ensure the main bubble's border can visually sit correctly over the tail's connection */
-  transition: top 200ms ease;
-}
-
-.chat-bubble.is-two-line {
-  top: 2px;
 }
 
 /* Tail for the chat bubble */

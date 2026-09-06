@@ -83,7 +83,7 @@ body.has-open-animation .recent-drawer, body.has-open-animation .recent-drawer-o
 #uploadWrapper { display: flex; gap: 28px; flex-direction: column-reverse; margin: auto; justify-content: center; align-items: center; opacity: 1; transition: transform 450ms cubic-bezier(0.8, 0, 0.9, 0.9), opacity 280ms linear; text-align: center; }
 .drag-drop-overlay { width: 18rem; height: 18rem; cursor: pointer; z-index: 99; transition: all var(--transition-speed); display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding-bottom: 0px; box-sizing: border-box; }
 #dragDropLottie { position: relative; z-index: 2; margin-bottom: -10px; pointer-events: none; width: 120%; }
-.chat-bubble { text-align: left; text-wrap: balance; position: absolute; top: 10px; left: 10px; background-color: rgb(241, 237, 211); color: rgb(49, 61, 54); font-size: 14px; font-weight: 600; padding: 12px 30px; border-radius: 999px; z-index: 1; transition: top 200ms; }
+.chat-bubble { white-space: pre-line; min-width: 180px; min-height: 20px; line-height: 20px; box-sizing: content-box; text-align: left; text-wrap-style: balance; position: absolute; top: auto; bottom: calc(100% - 66px); left: 10px; background-color: rgb(241, 237, 211); color: rgb(49, 61, 54); font-size: 14px; font-weight: 600; padding: 12px 30px; border-radius: 999px; z-index: 1; }
 .chat-bubble::after { content: ""; position: absolute; width: 16px; height: 16px; background-color: rgb(241, 237, 211); transform: rotate(45deg); bottom: -8px; left: 40px; border-bottom-right-radius: 3px; z-index: 0; }
 @keyframes slideUpFadeIn { 
   0% { opacity: 0; transform: translateY(40px); }
