@@ -186,6 +186,11 @@ body::-webkit-scrollbar {
   min-height: 50px;
   min-width: 50px;
   padding: 0;
+  /* #uploadLabel is a .btn, which sets gap: var(--spacing-sm). In the collapsed
+     circle that gap still occupies the flex line next to the zero-width label
+     and pushes the icon off-centre. Spacing in the expanded state comes from
+     the span's own margin-left instead. */
+  gap: 0;
   box-sizing: border-box;
   overflow: hidden;
   border: 0;
@@ -200,31 +205,30 @@ body::-webkit-scrollbar {
   transition: flex-grow 200ms ease, background-color 180ms ease;
 }
 
-#uploadButtonWrapper #uploadLabel { flex: 1 1 50px; }
-#uploadButtonWrapper .paste-json-button { flex: 0 0 50px; }
+/* "Paste a JSON" is the expanded default; "Choose a Lottie" sits collapsed
+   as a circular icon and expands on hover/focus. */
+#uploadButtonWrapper #uploadLabel { flex: 0 0 50px; }
+#uploadButtonWrapper .paste-json-button { flex: 1 1 50px; }
 
+/* A button shows EITHER its icon (collapsed) or its label (expanded), never
+   both. Collapsing the icon's width as well as its opacity keeps whichever
+   part is visible centred in the button. */
 .upload-choice-icon,
 .paste-json-icon {
   width: 20px;
   height: 20px;
+  flex: 0 0 20px;
+  opacity: 1;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.7;
   stroke-linecap: round;
   stroke-linejoin: round;
+  transition: width 200ms ease, flex-basis 200ms ease, opacity 120ms ease;
 }
 
-#uploadButtonWrapper #uploadLabel .upload-choice-icon {
-  position: absolute;
-  opacity: 0;
-  transition: opacity 120ms ease;
-}
-
-#uploadButtonWrapper #uploadLabel span {
-  white-space: nowrap;
-  transition: opacity 120ms ease;
-}
-
+/* Both labels collapse the same way; the expanded one is chosen below. */
+#uploadButtonWrapper #uploadLabel span,
 #uploadButtonWrapper .paste-json-button span {
   max-width: 0;
   opacity: 0;
@@ -233,16 +237,42 @@ body::-webkit-scrollbar {
   transition: max-width 200ms ease, opacity 120ms ease;
 }
 
-#uploadButtonWrapper:has(#pasteJsonButton:hover, #pasteJsonButton:focus-visible) #uploadLabel {
+/* Default: Paste JSON code expanded - label only, icon collapsed away. */
+#uploadButtonWrapper .paste-json-button span {
+  max-width: 160px;
+  opacity: 1;
+}
+#uploadButtonWrapper .paste-json-button .paste-json-icon {
+  width: 0;
+  flex-basis: 0;
+  opacity: 0;
+}
+
+/* Hovering or focusing Choose a Lottie swaps which one is expanded. */
+#uploadButtonWrapper:has(#uploadLabel:hover, #uploadLabel:focus-visible) #uploadLabel {
+  flex-grow: 1;
+}
+#uploadButtonWrapper:has(#uploadLabel:hover, #uploadLabel:focus-visible) #uploadLabel span {
+  max-width: 160px;
+  opacity: 1;
+}
+#uploadButtonWrapper:has(#uploadLabel:hover, #uploadLabel:focus-visible) #uploadLabel .upload-choice-icon {
+  width: 0;
+  flex-basis: 0;
+  opacity: 0;
+}
+#uploadButtonWrapper:has(#uploadLabel:hover, #uploadLabel:focus-visible) .paste-json-button {
   flex-grow: 0;
 }
-#uploadButtonWrapper:has(#pasteJsonButton:hover, #pasteJsonButton:focus-visible) #uploadLabel span { opacity: 0; }
-#uploadButtonWrapper:has(#pasteJsonButton:hover, #pasteJsonButton:focus-visible) #uploadLabel .upload-choice-icon { opacity: 1; }
-#uploadButtonWrapper:has(#pasteJsonButton:hover, #pasteJsonButton:focus-visible) .paste-json-button { flex-grow: 1; }
-#uploadButtonWrapper:has(#pasteJsonButton:hover, #pasteJsonButton:focus-visible) .paste-json-button span {
-  max-width: 120px;
-  margin-left: 8px;
+#uploadButtonWrapper:has(#uploadLabel:hover, #uploadLabel:focus-visible) .paste-json-button .paste-json-icon {
+  width: 20px;
+  flex-basis: 20px;
   opacity: 1;
+}
+#uploadButtonWrapper:has(#uploadLabel:hover, #uploadLabel:focus-visible) .paste-json-button span {
+  max-width: 0;
+  margin-left: 0;
+  opacity: 0;
 }
 
 #uploadButtonWrapper #uploadLabel:hover,
@@ -271,6 +301,32 @@ body::-webkit-scrollbar {
 
 /* --- Upload Wrapper --- */
 #uploadWrapper {
+  box-sizing: border-box;
+  position: relative;
+  width: min(100%, 560px);
+  padding: 100px 24px 110px;
+  min-height: 100svh;
+}
+body:has(#uploadWrapper:not([style*="display: none"])) { min-height: 100svh; height: auto; width: 100%; box-sizing: border-box; overflow-x: clip; }
+html:has(#uploadWrapper:not([style*="display: none"])) { overflow-x: clip; }
+body:not(.has-open-animation) .window-container { display: none; }
+.recent-files { order: -2; width: 100%; max-width: 432px; margin-top: 12px; }
+.recent-files[hidden] { display: none; }
+.recent-files h2 { margin: 0 0 16px; font-size: 14px; font-weight: 500; color: var(--color-text-secondary); }
+.recent-files-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px 18px; }
+.recent-file { flex: 0 0 calc((100% - 36px) / 3); min-width: 0; border: 0; padding: 0; background: none; color: var(--color-text-primary); font: inherit; cursor: pointer; }
+.recent-preview { display: flex; align-items: center; justify-content: center; width: 100%; aspect-ratio: 1.35; box-sizing: border-box; padding: 12px; border: 1px solid var(--color-border); border-radius: 16px; background: #fff; overflow: hidden; font-size: 11px; }
+.recent-preview svg { display: block; width: 100%; height: 100%; }
+.recent-name { display: block; margin-top: 7px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.recent-file:hover .recent-preview { border-color: #2a9484; }
+.recent-file:focus-visible { outline: 2px solid #1685ff; outline-offset: 5px; border-radius: 16px; }
+#recentSaveStatus { position: fixed; z-index: 10000; bottom: 10px; left: 50%; transform: translateX(-50%); max-width: min(90vw, 480px); margin: 0; padding: 8px 14px; border-radius: 8px; background: #fff; color: #8d352b; font-size: 12px; text-align: center; }
+#recentSaveStatus:empty { display: none; }
+@media (max-width: 480px) {
+  .recent-file { flex-basis: calc((100% - 18px) / 2); }
+  #uploadWrapper { padding-inline: 12px; }
+}
+#uploadWrapper {
   display: flex;
   gap: var(--spacing-lg);
   flex-direction: column-reverse;
@@ -285,6 +341,25 @@ body::-webkit-scrollbar {
   text-align: center;
   /* Center the label/button */
 }
+
+.home-credit {
+  position: absolute;
+  inset: auto 0 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #737373;
+  font-size: 12px;
+  font-weight: 400;
+}
+.home-credit a { color: inherit; text-decoration: none; }
+.home-credit a:hover { color: #313d36; }
+.home-credit a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; border-radius: 3px; }
+.home-social { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: 0 0 28px; }
+.home-social svg { display: block; width: 16px; height: 16px; flex-shrink: 0; }
+.home-social[aria-label="Ishant on X"] svg { width: 14px; height: 14px; }
+
 
 .drag-drop-overlay {
 
@@ -325,6 +400,8 @@ body::-webkit-scrollbar {
 }
 
 #dragDropLottie {
+  position: relative;
+  z-index: 2;
   margin-bottom: -10px;
   pointer-events: none;
   width: 120%;
@@ -336,6 +413,8 @@ body::-webkit-scrollbar {
 
 /* Style for the realistic chat bubble */
 .chat-bubble {
+  text-align: left;
+  text-wrap: balance;
   position: absolute;
   top: 10px;
   /* Keep original positioning */
@@ -345,7 +424,7 @@ body::-webkit-scrollbar {
   color: #313D36;
   font-size: 14px;
   font-weight: 600;
-  padding: 10px 20px;
+  padding: 12px 30px;
   border-radius: 999px;
   /* Rounded corners for the main bubble */
 
@@ -1035,30 +1114,137 @@ select {
 
 .selection-hidden { display: none !important; }
 .preview-selected-image[hidden] { display: none; }
-.preview-selected-image-card {
+/* --- Inline asset card for a selected image ------------------------------
+   Matches the .accordion / .gradient-accordion recipe so it lines up with the
+   colour and gradient cards below it. */
+.asset-card-list {
   width: 85%;
-  max-width: 280px;
-  height: 212px;
-  box-sizing: border-box;
   margin: 0 auto;
-  padding: 16px;
+  max-height: 60vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.asset-card-list::-webkit-scrollbar { display: none; }
+.asset-card {
+  background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.asset-card-body {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+.asset-card-info { flex: 1 1 auto; min-width: 0; }
+.asset-card-name {
+  display: block;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--color-text-primary);
+  word-break: break-all;
+  margin-bottom: 2px;
+}
+.asset-card-meta,
+.asset-card-shared {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+.asset-card-shared[hidden] { display: none; }
+.asset-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+.asset-card-btn {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+  color: #6b7280;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: background-color var(--transition-speed), border-color var(--transition-speed), color var(--transition-speed);
 }
-.preview-selected-image-card img {
+.asset-card-btn svg { width: 1rem; height: 1rem; }
+.asset-card-btn:hover:not(:disabled) { background-color: #e5e7eb; border-color: #9ca3af; }
+.asset-card-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.asset-card-fit.active { background-color: #bfdbfe; border-color: #3b82f6; color: #2563eb; }
+.asset-card-reset-enabled:not(:disabled) {
+  background-color: #d1fae5;
+  border-color: #6ee7b7;
+  color: #059669;
+}
+.asset-card-reset-enabled:hover:not(:disabled) { background-color: #a7f3d0; border-color: #34d399; }
+
+/* Thumbnail doubles as the replace target. */
+.asset-card-thumb {
+  position: relative;
+  flex: 0 0 auto;
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dotted var(--color-border);
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color var(--transition-speed), border-style var(--transition-speed);
+}
+.asset-card-thumb:hover { border-color: #94a3b8; }
+.asset-card-thumb.drag-over { border-color: #2563eb; border-style: solid; }
+.asset-card-thumb:focus-visible { outline: 2px solid var(--color-secondary); outline-offset: 2px; }
+.asset-card-thumb img {
   display: block;
   width: auto;
   height: auto;
-  max-width: min(100%, 240px);
-  max-height: 180px;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
 }
-.preview-selected-image-card img[hidden] { display: none; }
-.preview-selected-image-card p { background: var(--color-surface); padding: 8px; }
+.asset-card-thumb img[hidden] { display: none; }
+.asset-card-error {
+  margin: 0;
+  padding: 4px;
+  font-size: 0.65rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+}
+.asset-card-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 10;
+  padding: 2px 6px;
+  font-size: 0.55rem;
+  font-weight: 600;
+  line-height: 1;
+  text-transform: uppercase;
+  color: #fff;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: var(--border-radius-pill);
+}
+.asset-card-file { display: none; }
+.asset-card-plain {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+}
+.asset-card-plain img { max-width: 100%; max-height: 180px; object-fit: contain; }
 #lottiePreview .preview-selectable { cursor: pointer; }
 #lottiePreview { touch-action: none; user-select: none; }
 .preview-selection-box.preview-marquee {
@@ -1079,12 +1265,27 @@ select {
 @media (prefers-reduced-motion: reduce) {
   .preview-selection-box:not(.preview-hover-box):not(.preview-marquee) { transition: none; }
 }
-.preview-selected-image-card:has(.additional-selected-image) {
-  height: auto;
-  max-height: 260px;
-  overflow-y: auto;
-  flex-wrap: wrap;
-  gap: 8px;
+/* Hover/focus cue on the replace target: dark veil + upload icon, so it reads
+   as clickable. Shared visual language with the asset replacer's thumbnail. */
+.asset-card-thumb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  opacity: 0;
+  pointer-events: none;
+  background-color: rgba(0, 0, 0, 0.55);
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 8 12 3 17 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 26px 26px;
+  transition: opacity var(--transition-speed);
+}
+.asset-card-thumb:hover::after,
+.asset-card-thumb:focus-visible::after,
+.asset-card-thumb.drag-over::after { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .asset-card-thumb::after { transition: none; }
 }
 .preview-selection-dismiss {
   display: flex;
@@ -1165,7 +1366,9 @@ select {
   background-color: #f0f0f0;
   transition: background-color 0.2s ease, border 0.2s ease;
   min-width: 68px;
-  font-size: 16px;
+  font-family: var(--font-family-base);
+  font-size: 0.9rem;
+  font-weight: 400;
   text-align: left;
   /* Align text to the left */
 }
@@ -1175,6 +1378,235 @@ select {
 .stop-row input[type="number"]::-webkit-inner-spin-button {
   margin-left: 6px;
   /* Optional: Adds space before spinner */
+}
+
+/* Keyframe number on an animated colour row. Animated groups are keyed by
+   colour, so one accordion mixes keyframes from different shapes and rows
+   can repeat a layer name; this distinguishes them. */
+/* Grouping switch on the Animated Colour heading. Floated rather than
+   flexed because the heading's display is set inline by JS, which would
+   override a stylesheet flex; the heading contains the float via overflow. */
+/* Contain the float with a clearfix, not overflow:hidden - the toggle is
+   taller than the heading line box and was being clipped. */
+#animatedColorLabel::after { content: ''; display: block; clear: both; }
+#animatedColorLabel { line-height: 26px; }
+
+.grouping-toggle {
+  float: right;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--border-radius-pill);
+  background: #f0f0f0;
+}
+
+.grouping-toggle-btn {
+  border: 0;
+  padding: 4px 10px;
+  border-radius: var(--border-radius-pill);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: 600 0.62rem/1.4 var(--font-family-base);
+  letter-spacing: 0.02em;
+  text-transform: none;
+  cursor: pointer;
+  transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+.grouping-toggle-btn:hover:not(.is-active) { color: var(--color-text-primary); }
+.grouping-toggle-btn.is-active {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-sm);
+}
+.grouping-toggle-btn:focus-visible { outline: 2px solid #1685ff; outline-offset: 1px; }
+
+/* Accordion header in By Keyframe mode: layer name, then a count badge. */
+.group-instance-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+.group-count-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.group-count-tag { margin-left: 0; }
+
+/* The name yields space to the count, color controls, and disclosure arrow. */
+.keyframe-color-group > .gradient-header > .accordion-header-content {
+  flex: 1 1 0;
+  min-width: 0;
+  gap: var(--spacing-sm);
+}
+
+.stop-row input[type="number"] {
+  font-family: var(--font-family-base);
+  font-size: 0.9rem;
+  font-weight: 400;
+}
+.keyframe-color-group .group-instance-count {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.keyframe-color-group .group-count-label {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: visible;
+}
+.keyframe-color-group .group-count-label .editable-layer-name-display {
+  min-width: 0;
+  max-width: 100%;
+  font-size: inherit;
+  font-weight: inherit;
+  margin: 0;
+  padding: 2px 0;
+}
+.keyframe-color-group .group-count-label .editable-layer-name-input {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.keyframe-color-group .group-count-tag,
+.keyframe-color-group .accordion-header-controls,
+.keyframe-color-group > .gradient-header::after {
+  flex-shrink: 0;
+}
+
+/* Editor search toolbar. Sits above the lists at their width, and is hidden
+   whenever a preview selection or the eyedropper filter owns the panel. */
+.search-hidden { display: none !important; }
+
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 85%;
+  margin: 20px auto 4px;
+  box-sizing: border-box;
+}
+.editor-toolbar[hidden] { display: none; }
+
+@media (min-width: 769px) {
+  /* Main content starts at 80px; align with the preview's 112px top. */
+  .editor-toolbar { margin-top: 32px; }
+}
+
+.editor-search-field {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  height: 38px;
+  min-width: 0;
+  max-width: 340px;
+}
+
+/* Outrank the shared input[type="text"] sizing and padding. The input must
+   fill the same wrapper that positions the search/clear action. */
+.editor-search-field .editor-search-input {
+  width: 100%;
+  min-width: 0;
+  flex: 1 1 0;
+  height: 38px;
+  margin: 0;
+  padding: 0 40px 0 16px;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-pill);
+  background-color: #e8eaed;
+  color: var(--color-text-primary);
+  font: 400 0.85rem/1.2 var(--font-family-base);
+  outline: none;
+  transition: background-color var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+.editor-search-field .editor-search-input::placeholder { color: #9ca3af; }
+.editor-search-field .editor-search-input:focus {
+  background-color: var(--color-surface);
+  border-color: var(--color-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+}
+
+.editor-search-icon {
+  position: absolute;
+  right: 10px;
+  top: calc(50% - 1px);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: color var(--transition-speed), background-color var(--transition-speed);
+}
+.editor-search-icon:hover { background: #e5e7eb; color: var(--color-text-primary); }
+.editor-search-icon:focus-visible { outline: 2px solid #1685ff; outline-offset: 1px; }
+.editor-search-icon svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+.editor-search-icon[data-state='clear'] svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.9;
+}
+
+.editor-refresh-btn {
+  flex: 0 0 auto;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  padding: 2px 14px 0;
+  box-sizing: border-box;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font: 600 0.72rem/1 var(--font-family-base);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--transition-speed), color var(--transition-speed), border-color var(--transition-speed);
+}
+.editor-refresh-btn:hover:not(:disabled) {
+  background: #f0f0f0;
+  color: var(--color-text-primary);
+  border-color: #9ca3af;
+}
+.editor-refresh-btn:disabled { opacity: .7; cursor: default; }
+.editor-refresh-btn:focus-visible { outline: 2px solid #1685ff; outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .editor-search-icon { transition: none; }
+}
+
+.keyframe-tag {
+  flex: 0 0 auto;
+  margin-left: 0.4rem;
+  padding: 2px 7px;
+  border-radius: var(--border-radius-pill);
+  background: #f0f0f0;
+  color: var(--color-text-secondary);
+  font-size: 0.62rem;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
 }
 
 .gradient-preview {
@@ -2076,15 +2508,74 @@ svg {
 .paste-json-close:focus-visible { background: var(--color-bg-lighter, #f0f0f0); }
 .paste-json-close:focus-visible { outline: 2px solid #1685ff; outline-offset: 2px; }
 
+/* The textarea owns a relative wrapper so Clear All and Paste can sit inside
+   its bottom-right corner. resize is off because the browser grip would
+   otherwise land in exactly that corner. */
+.paste-json-input {
+  position: relative;
+  margin: 20px 22px 8px;
+}
+
+.paste-json-input-actions {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.paste-json-mini {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font: 500 0.72rem/1 var(--font-family-base);
+  padding: 6px 10px;
+  border-radius: var(--border-radius-pill);
+  cursor: pointer;
+  transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+.paste-json-mini:hover { background: #f0f0f0; color: var(--color-text-primary); }
+.paste-json-mini[hidden] { display: none; }
+
+.paste-json-grab {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #2A9484;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background-color var(--transition-speed);
+}
+.paste-json-grab:hover { background: #1B7769; }
+.paste-json-grab:focus-visible { outline: 2px solid #1685ff; outline-offset: 2px; }
+.paste-json-grab svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 #pasteJsonTextarea {
   display: block;
-  width: calc(100% - 44px);
+  width: 100%;
   min-height: 280px;
   max-height: 55vh;
-  margin: 20px 22px 8px;
+  margin: 0;
   padding: 14px;
+  padding-bottom: 52px;
   box-sizing: border-box;
-  resize: vertical;
+  resize: none;
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius-md);
   background: #fbfbfb;
@@ -3301,7 +3792,7 @@ svg {
 /* Optional: Style for the container if it needs more than inline styles */
 /* #lottieFileChipsContainer { ... } */
 
-#lottiePreview.dragover-preview {
+.window-container.dragover-preview {
   /* Remove the border property if it exists here */
   /* border: 2px dashed #4CAF50; */
 
@@ -4462,11 +4953,6 @@ svg {
   letter-spacing: 0.5px;
 }
 
-/* lottiemon.com only: the state machine builder is not shipped publicly.
-   !important is required because js/index.js sets this button's inline
-   display to 'inline-flex' at runtime. Delete this block when the
-   feature launches (and copy statemachinebuilder/ across). */
+/* Public-only controls: internal builder and share remain hidden. */
 #openStateMachineBuilderBtn { display: none !important; }
-
-/* lottiemon.com only: hide the viewport header Share button. */
 #openShareModalBtn { display: none !important; }
