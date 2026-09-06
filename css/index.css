@@ -168,6 +168,98 @@ body::-webkit-scrollbar {
   opacity: 1;
 }
 
+#uploadButtonWrapper.upload-choice-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 242px;
+  max-width: calc(100vw - 32px);
+}
+
+#uploadButtonWrapper #uploadLabel,
+#uploadButtonWrapper .paste-json-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  min-height: 50px;
+  min-width: 50px;
+  padding: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: #2A9484;
+  color: var(--color-text-on-primary);
+  font: 500 1rem/1 var(--font-family);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  animation: none;
+  transform: none;
+  transition: flex-grow 200ms ease, background-color 180ms ease;
+}
+
+#uploadButtonWrapper #uploadLabel { flex: 1 1 50px; }
+#uploadButtonWrapper .paste-json-button { flex: 0 0 50px; }
+
+.upload-choice-icon,
+.paste-json-icon {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#uploadButtonWrapper #uploadLabel .upload-choice-icon {
+  position: absolute;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+#uploadButtonWrapper #uploadLabel span {
+  white-space: nowrap;
+  transition: opacity 120ms ease;
+}
+
+#uploadButtonWrapper .paste-json-button span {
+  max-width: 0;
+  opacity: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: max-width 200ms ease, opacity 120ms ease;
+}
+
+#uploadButtonWrapper:has(#pasteJsonButton:hover, #pasteJsonButton:focus-visible) #uploadLabel {
+  flex-grow: 0;
+}
+#uploadButtonWrapper:has(#pasteJsonButton:hover, #pasteJsonButton:focus-visible) #uploadLabel span { opacity: 0; }
+#uploadButtonWrapper:has(#pasteJsonButton:hover, #pasteJsonButton:focus-visible) #uploadLabel .upload-choice-icon { opacity: 1; }
+#uploadButtonWrapper:has(#pasteJsonButton:hover, #pasteJsonButton:focus-visible) .paste-json-button { flex-grow: 1; }
+#uploadButtonWrapper:has(#pasteJsonButton:hover, #pasteJsonButton:focus-visible) .paste-json-button span {
+  max-width: 120px;
+  margin-left: 8px;
+  opacity: 1;
+}
+
+#uploadButtonWrapper #uploadLabel:hover,
+#uploadButtonWrapper .paste-json-button:hover { background: #1B7769; }
+#uploadButtonWrapper #uploadLabel:focus-visible,
+#uploadButtonWrapper .paste-json-button:focus-visible {
+  outline: 2px solid #1685ff;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #uploadButtonWrapper #uploadLabel,
+  #uploadButtonWrapper .paste-json-button,
+  #uploadButtonWrapper span,
+  #uploadButtonWrapper svg { transition: none; }
+}
+
 /* Class to trigger the animation out for the wrapper */
 #uploadButtonWrapper.animate-out {
   transform: translateY(-30px) scaleY(0);
@@ -941,6 +1033,101 @@ select {
   gap: var(--spacing-md);
 }
 
+.selection-hidden { display: none !important; }
+.preview-selected-image[hidden] { display: none; }
+.preview-selected-image-card {
+  width: 85%;
+  max-width: 280px;
+  height: 212px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.preview-selected-image-card img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(100%, 240px);
+  max-height: 180px;
+  object-fit: contain;
+}
+.preview-selected-image-card img[hidden] { display: none; }
+.preview-selected-image-card p { background: var(--color-surface); padding: 8px; }
+#lottiePreview .preview-selectable { cursor: pointer; }
+#lottiePreview { touch-action: none; user-select: none; }
+.preview-selection-box.preview-marquee {
+  border: 1px solid #1685ff;
+  background: rgba(22, 133, 255, .12);
+  mix-blend-mode: normal;
+}
+.preview-selection-box.preview-hover-box {
+  border: 2px solid white;
+  mix-blend-mode: difference;
+}
+.preview-selection-box:not(.preview-hover-box):not(.preview-marquee) {
+  transition: opacity 150ms ease;
+}
+.preview-selection-box.preview-selection-muted {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .preview-selection-box:not(.preview-hover-box):not(.preview-marquee) { transition: none; }
+}
+.preview-selected-image-card:has(.additional-selected-image) {
+  height: auto;
+  max-height: 260px;
+  overflow-y: auto;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.preview-selection-dismiss {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px 8px 16px;
+  margin: 30px auto 10px;
+  width: fit-content;
+  max-width: 90%;
+  background: rgb(255, 174, 170);
+  border: 2px solid rgb(255, 174, 170);
+  border-radius: 999px;
+  box-shadow: var(--shadow-sm);
+  font: inherit;
+  font-size: 0.9em;
+  color: inherit;
+  cursor: pointer;
+}
+.preview-selection-dismiss[hidden] { display: none; }
+.preview-selection-dismiss:hover { border-color: #F7837D; }
+.preview-selection-dismiss span { font-size: 1.2em; padding: 0 5px; }
+.preview-selection-dismiss:focus-visible { outline: 2px solid #1685ff; outline-offset: 2px; }
+.preview-selection-box {
+  position: absolute;
+  border: 1px solid white;
+  mix-blend-mode: difference;
+  box-sizing: border-box;
+  pointer-events: none;
+  z-index: 9;
+}
+.preview-selection-box[hidden] { display: none; }
+.preview-selection-box i {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: white;
+  box-sizing: border-box;
+}
+.preview-selection-box i:nth-child(1) { left: -3px; top: -3px; }
+.preview-selection-box i:nth-child(2) { right: -3px; top: -3px; }
+.preview-selection-box i:nth-child(3) { right: -3px; bottom: -3px; }
+.preview-selection-box i:nth-child(4) { left: -3px; bottom: -3px; }
+
 .stop-row .label {
 
   flex-shrink: 0;
@@ -1313,6 +1500,8 @@ input[type="range"]:focus::-moz-range-thumb {
 }
 
 .window-header {
+  position: relative;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1829,6 +2018,85 @@ svg {
   opacity: 1;
 }
 
+.paste-json-overlay {
+  z-index: 1002;
+}
+
+.paste-json-panel {
+  width: min(680px, calc(100% - 32px));
+  background: var(--color-surface);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  transform: translateY(20px);
+  opacity: 0;
+  transition: transform 220ms ease, opacity 180ms ease;
+}
+
+.paste-json-overlay.active .paste-json-panel {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.paste-json-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: 20px 22px 14px;
+  border-bottom: 1px solid var(--color-border-light, #eee);
+}
+
+.paste-json-header h3 {
+  margin: 0 0 5px;
+  color: var(--color-text-primary);
+  font-size: 1.15rem;
+}
+
+.paste-json-header p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: .9rem;
+}
+
+.paste-json-close {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.paste-json-close:hover,
+.paste-json-close:focus-visible { background: var(--color-bg-lighter, #f0f0f0); }
+.paste-json-close:focus-visible { outline: 2px solid #1685ff; outline-offset: 2px; }
+
+#pasteJsonTextarea {
+  display: block;
+  width: calc(100% - 44px);
+  min-height: 280px;
+  max-height: 55vh;
+  margin: 20px 22px 8px;
+  padding: 14px;
+  box-sizing: border-box;
+  resize: vertical;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  background: #fbfbfb;
+  color: var(--color-text-primary);
+  font: 13px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+#pasteJsonTextarea:focus { outline: 2px solid rgba(22, 133, 255, .35); outline-offset: 1px; }
+#pasteJsonTextarea.is-invalid { border-color: #d9534f; background: #fff5f4; }
+.paste-json-error { margin: 0 22px 8px; color: #bd2d29; font-size: .88rem; }
+.paste-json-footer { display: flex; justify-content: center; gap: 10px; padding: 14px 22px 20px; }
+
 .confirm-dialog-panel h3 {
   margin-top: 0;
   margin-bottom: var(--spacing-md);
@@ -1942,7 +2210,8 @@ svg {
 #emptyStateDiv {
   display: none;
   /* Hidden by default */
-  height: 100%;
+  flex: 1;
+  min-height: 240px;
   /* Set the desired height */
   max-height: 900px;
   width: 100%;
@@ -1957,15 +2226,16 @@ svg {
   /* Optional visual styling */
   pointer-events: none;
   border-radius: var(--border-radius-md);
-  margin-top: -22%;
+  margin: 0;
   box-sizing: border-box;
   /* Include padding/border in height */
 }
 
 #emptyStateDiv img {
-  max-width: 68%;
+  width: 280px;
+  max-width: 90%;
   /* Prevent image from becoming too large */
-  max-height: 68%;
+  max-height: 320px;
   object-fit: contain;
   /* Ensure image scales nicely */
   opacity: 0.7;
@@ -1973,6 +2243,11 @@ svg {
 }
 
 /* Optional: Hide the main heading when the empty state is shown */
+#editorScrollContent:has(> #emptyStateDiv[style*="display: flex"]):not(:has(.preview-selection-dismiss:not([hidden]))) {
+  display: flex;
+  flex-direction: column;
+}
+
 #editorArea.is-empty #colorInstancesLabel {
   display: none;
 }
@@ -2144,6 +2419,51 @@ svg {
   background-color: #ffdad4;
 }
 
+.layer-name-pill .pill-icon { display: inline-flex; align-items: center; justify-content: center; }
+.layer-name-pill .property-eye {
+  display: none;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  background-color: currentColor;
+  mask: url('../visible.svg') center / contain no-repeat;
+  -webkit-mask: url('../visible.svg') center / contain no-repeat;
+}
+.layer-name-pill .property-eye-invisible {
+  mask-image: url('../invisible.svg');
+  -webkit-mask-image: url('../invisible.svg');
+}
+.color-row:hover .layer-name-pill:not(.hidden) .pill-icon,
+.stop-row:hover .layer-name-pill:not(.hidden) .pill-icon,
+.gradient-accordion:hover > :is(.gradient-header, .accordion-header) .layer-name-pill:not(.hidden) .pill-icon,
+.layer-name-pill:focus-visible .pill-icon,
+.layer-name-pill.hidden .pill-icon { display: none; }
+.color-row:hover .layer-name-pill:not(.hidden) .property-eye-visible,
+.stop-row:hover .layer-name-pill:not(.hidden) .property-eye-visible,
+.gradient-accordion:hover > :is(.gradient-header, .accordion-header) .layer-name-pill:not(.hidden) .property-eye-visible,
+.layer-name-pill:not(.hidden):focus-visible .property-eye-visible,
+.layer-name-pill.hidden .property-eye-invisible { display: inline-block; }
+.layer-name-pill.hidden { color: #bd3b37; }
+.layer-name-pill:focus-visible { outline: 2px solid #1685ff; outline-offset: 2px; }
+.property-visibility-tooltip {
+  position: fixed;
+  z-index: 10020;
+  pointer-events: none;
+  width: 170px;
+  max-width: calc(100vw - 16px);
+  box-sizing: border-box;
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: #252525;
+  color: #fff;
+  box-shadow: 0 2px 6px #0002;
+  font-family: var(--font-family);
+  font-size: 11px !important;
+  line-height: 1.25;
+}
+.property-visibility-tooltip .tooltip-shortcut { display: inline; font-weight: 700; color: #fff; }
+.property-visibility-tooltip .tooltip-copy { display: inline; color: #b8b8b8; }
+
 #openAssetReplacerBtn {
   background-color: #f0f0f0;
   /* Neutral grey or another color */
@@ -2303,6 +2623,7 @@ svg {
 
 
 .lottie-player-controls {
+  z-index: 10;
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
@@ -2612,6 +2933,14 @@ svg {
 }
 
 
+
+.window-container .window-body.has-preview-selection .preview-controls-top-left,
+.window-container .window-body.has-preview-selection .preview-bg-toggle {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: none;
+}
 
 .lottie-file-chip {
   display: inline-flex;
@@ -4132,3 +4461,12 @@ svg {
   vertical-align: middle;
   letter-spacing: 0.5px;
 }
+
+/* lottiemon.com only: the state machine builder is not shipped publicly.
+   !important is required because js/index.js sets this button's inline
+   display to 'inline-flex' at runtime. Delete this block when the
+   feature launches (and copy statemachinebuilder/ across). */
+#openStateMachineBuilderBtn { display: none !important; }
+
+/* lottiemon.com only: hide the viewport header Share button. */
+#openShareModalBtn { display: none !important; }

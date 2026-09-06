@@ -3,8 +3,37 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=1024">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lottiemon | Quick & Free Lottie Editor</title>
+  <style>
+    html.landing-pending #uploadWrapper,
+    html.landing-pending #top-bar { visibility: hidden; pointer-events: none; }
+    #startupStatus { display: none; }
+    html.landing-pending #startupStatus {
+      display: block; position: fixed; inset: 45% 16px auto;
+      text-align: center; font: 16px/1.5 sans-serif; color: #444;
+    }
+  </style>
+  <script>
+    if (!['postcard', 'lottie', 'dotLottie', 'gdrivelottie', 'gdriveDotlottie']
+      .some(key => new URLSearchParams(location.search).has(key))) {
+      document.documentElement.classList.add('landing-pending');
+      window.landingStartupTimer = setTimeout(() => {
+        const status = document.getElementById('startupStatus');
+        if (status) status.textContent = 'Loading is taking longer than expected. Check your connection or reload the page.';
+      }, 30000);
+    }
+    // Start requests while the HTML is still being parsed. The early animation
+    // bootstrap consumes these promises, avoiding a second JSON request.
+    window.landingAnimationData = {};
+    for (const path of ['upload.json', 'buyme.json']) {
+      window.landingAnimationData[path] = fetch(path, { priority: 'high' })
+        .then(response => {
+          if (!response.ok) throw new Error('Animation request failed');
+          return response.json();
+        }).catch(() => null);
+    }
+  </script>
 
   <meta name="title" content="Lottiemon | Quick & Free Lottie Editor">
   <meta name="description"
@@ -27,13 +56,12 @@
 
 
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="social-preview.png">
-  <link rel="alternate icon" href="social-preview.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="css/index.css">
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js" as="script" fetchpriority="high">
   <script>
     (function () {
       // Check for any of your "external load" parameters
@@ -61,8 +89,7 @@
 </head>
 
 <body style="overflow: auto; height: auto; min-height: 100vh;">
-
-
+  <p id="startupStatus" role="status">Loading Lottiemon…</p>
 
   <div id="allChipsOverlay" class="all-chips-overlay-backdrop" style="display: none;">
     <div class="all-chips-overlay-panel">
@@ -84,6 +111,25 @@
       <div class="confirm-dialog-buttons">
         <button id="cancelDeleteBtn" class="btn">Cancel</button>
         <button id="confirmDeleteBtn" class="btn btn--danger">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay paste-json-overlay" id="pasteJsonOverlay" role="dialog" aria-modal="true"
+    aria-labelledby="pasteJsonTitle">
+    <div class="paste-json-panel">
+      <div class="paste-json-header">
+        <div>
+          <h3 id="pasteJsonTitle">Paste Lottie JSON code below</h3>
+        </div>
+        <button id="closePasteJsonBtn" class="paste-json-close" type="button" aria-label="Close paste JSON dialog">&times;</button>
+      </div>
+      <textarea id="pasteJsonTextarea" spellcheck="false" autocomplete="off"
+        placeholder="Paste Lottie JSON here…" aria-describedby="pasteJsonError"></textarea>
+      <p id="pasteJsonError" class="paste-json-error" role="alert" hidden></p>
+      <div class="paste-json-footer">
+        <button id="cancelPasteJsonBtn" class="btn" type="button">Cancel</button>
+        <button id="loadPastedJsonBtn" class="btn btn--primary" type="button">Load Lottie</button>
       </div>
     </div>
   </div>
@@ -113,8 +159,20 @@
   </div>
 
   <div id="uploadWrapper">
-    <div id="uploadButtonWrapper">
-      <label for="fileInput" id="uploadLabel" class="btn btn--primary">Choose Lottie JSON</label>
+    <div id="uploadButtonWrapper" class="upload-choice-group">
+      <button type="button" id="uploadLabel" class="btn btn--primary" aria-label="Choose a Lottie">
+        <svg class="upload-choice-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 8V6a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v1M3 8h16a2 2 0 0 1 2 2l-2 8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" />
+        </svg>
+        <span>Choose a Lottie</span>
+      </button>
+      <button id="pasteJsonButton" class="paste-json-button" type="button" title="Paste a JSON" aria-label="Paste a JSON">
+        <svg class="paste-json-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="8" y="3" width="8" height="4" rx="1.5" />
+          <path d="M8 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M8 12h8M8 16h6" />
+        </svg>
+        <span>Paste a JSON</span>
+      </button>
     </div>
     <div>
       <label for="multipleFileInput" id="uploadMultipleLabel" class="btn btn--secondary">Choose Multiple Lottie
@@ -125,7 +183,6 @@
       <div id="dragDropLottie"></div>
     </div>
 
-    <input type="file" id="fileInput" accept=".json, .lottie" />
   </div>
 
   <div class="window-container">
@@ -315,8 +372,8 @@
         <div class="json-header">
           <h3 id="dotLottieExportLabel">Dot Lottie</h3>
           <div class="json-header-controls">
-            <button id="openStateMachineBuilderBtn" style="display: none; pointer-events: none; opacity: 0;"
-              class="state-machine-pill" type="button" title="Open State Machine Editor">
+            <button id="openStateMachineBuilderBtn" class="state-machine-pill" type="button"
+              title="Open State Machine Editor">
 
               <svg class="pill-default-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                 <path
@@ -549,6 +606,7 @@
   </div>
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+  <script src="js/landingAnimations.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
