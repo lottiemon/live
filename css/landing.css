@@ -259,7 +259,7 @@ body.postcard-mode-active .overlay-close { display: none !important; }
 .lottie-player-controls { display: flex; position: relative; width: 100%; z-index: 10; }
 .control-button { display: flex; }
 .control-button svg { height: 20px; width: 20px; }
-#lottieSeekbar { height: 8px; }
+#lottieSeekbar { height: 12px; }
 #lottieSeekbar::-webkit-slider-thumb { height: 16px; width: 16px; }
 .speed-control-pill { display: flex; }
 .speed-slider-popup { display: none; position: absolute; right: var(--spacing-md); bottom: calc(100% + var(--spacing-sm)); width: 250px; z-index: 10; }

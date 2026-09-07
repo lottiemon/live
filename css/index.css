@@ -3877,7 +3877,7 @@ svg {
 
 #lottieSeekbar {
   flex-grow: 1;
-  height: 8px;
+  height: 12px;
   -webkit-appearance: none;
   appearance: none;
   background: var(--color-border);
