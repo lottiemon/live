@@ -400,8 +400,13 @@ body::-webkit-scrollbar {
   /* Sits a little above centre at all times. The recent-files container is
      fixed at the bottom and takes about 130px of screen; padding that out here
      keeps the composition steady whether or not it is present, rather than
-     shifting the moment recents appear. */
-  padding: 100px 24px 240px;
+     shifting the moment recents appear. The block centres inside this padding
+     box, so the surplus at the bottom lifts it by half that surplus: 50px of
+     surplus puts it 25px above the viewport centre. It used to reserve the
+     recents strip in full (100/240), which read as top-heavy on a first visit
+     when nothing was down there; the 45px moved off the bottom and onto the
+     top brings it down without giving up the steadiness. */
+  padding: 145px 24px 195px;
   min-height: 100svh;
 }
 
